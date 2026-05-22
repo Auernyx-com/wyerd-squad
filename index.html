@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Pathfinder — Veteran navigation assistant. Find your path through housing, benefits, and VA programs." />
+  <title>Pathfinder — SQUAD BAT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:      #0f1f33;
+      --navy-mid:  #162840;
+      --navy-lit:  #1e3554;
+      --border:    #2a4060;
+      --teal:      #3a9eca;
+      --teal-dim:  #1e5a7a;
+      --teal-lit:  #6abde8;
+      --text:      #eef2f7;
+      --text-dim:  #8aacc8;
+      --text-muted:#4a6a88;
+      --warn:      #e8a840;
+      --fail:      #e05050;
+      --pass:      #3dba7a;
+      --sans:      'Inter', system-ui, sans-serif;
+      --mono:      'IBM Plex Mono', monospace;
+    }
+
+    html, body { min-height: 100%; background: var(--navy); color: var(--text); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+
+    .shell { max-width: 680px; margin: 0 auto; padding: 0 16px 60px; }
+
+    /* Header */
+    header { padding: 24px 0 20px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+    .brand { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+    .brand a { color: var(--text-muted); text-decoration: none; }
+    .brand a:hover { color: var(--teal-lit); }
+    .brand span { margin: 0 6px; }
+    .brand .beta { background: var(--warn); color: #1a1000; padding: 2px 7px; border-radius: 3px; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; margin-left: 8px; }
+    h1 { font-size: 26px; font-weight: 600; color: var(--teal-lit); letter-spacing: -0.02em; margin-bottom: 4px; }
+    .tagline { font-size: 14px; color: var(--text-dim); }
+
+    /* Privacy bar */
+    .privacy { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; font-size: 12px; color: var(--text-muted); margin-bottom: 28px; }
+    .privacy strong { color: var(--warn); }
+
+    /* Card */
+    .card { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 8px; padding: 28px 24px; margin-bottom: 20px; }
+    .card-question { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 6px; line-height: 1.4; }
+    .card-sub { font-size: 13px; color: var(--text-dim); margin-bottom: 20px; }
+
+    /* Progress */
+    .progress { display: flex; align-items: center; gap: 6px; margin-bottom: 24px; }
+    .progress-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--navy-lit); border: 1px solid var(--border); transition: all 0.2s; }
+    .progress-dot.done { background: var(--pass); border-color: var(--pass); }
+    .progress-dot.active { background: var(--teal); border-color: var(--teal); }
+    .progress-label { font-size: 12px; color: var(--text-muted); margin-left: 6px; font-family: var(--mono); }
+
+    /* Options */
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .options.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .opt { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; background: var(--navy-lit); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; text-align: left; color: var(--text); font-family: var(--sans); font-size: 14px; font-weight: 500; line-height: 1.4; transition: border-color 0.15s, background 0.15s; width: 100%; }
+    .opt:hover { border-color: var(--teal-dim); background: #1a3050; }
+    .opt.selected { border-color: var(--teal); background: #1a3a5a; }
+    .opt-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .opt-body { flex: 1; }
+    .opt-label { display: block; }
+    .opt-desc { display: block; font-size: 12px; color: var(--text-dim); font-weight: 400; margin-top: 2px; }
+
+    /* Inputs */
+    input[type="text"], input[type="password"] { background: var(--navy-lit); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: var(--sans); font-size: 15px; padding: 14px 16px; outline: none; transition: border-color 0.15s; width: 100%; }
+    input:focus { border-color: var(--teal-dim); }
+    input::placeholder { color: var(--text-muted); }
+    .input-stack { display: flex; flex-direction: column; gap: 10px; }
+    .input-note { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
+    .input-note strong { color: var(--warn); }
+
+    /* Buttons */
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; gap: 12px; }
+    .btn { padding: 12px 24px; border-radius: 6px; border: none; font-family: var(--sans); font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s, background 0.15s; }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-primary { background: var(--teal); color: #0a1a28; }
+    .btn-primary:hover:not(:disabled) { background: var(--teal-lit); }
+    .btn-ghost { background: transparent; color: var(--text-dim); border: 1px solid var(--border); }
+    .btn-ghost:hover:not(:disabled) { color: var(--text); border-color: var(--text-dim); }
+    .btn-warn { background: var(--fail); color: #fff; }
+    .btn-warn:hover:not(:disabled) { opacity: 0.85; }
+    .link-btn { font-size: 12px; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 0; font-family: var(--sans); text-decoration: underline; }
+    .link-btn:hover { color: var(--text-dim); }
+
+    /* Loading */
+    .loading { text-align: center; padding: 60px 0; }
+    .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--teal); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading p { color: var(--text-dim); font-size: 14px; }
+    .loading .loading-sub { color: var(--text-muted); font-size: 12px; margin-top: 6px; }
+
+    /* Results */
+    .results-header { margin-bottom: 20px; }
+    .results-header h2 { font-size: 20px; font-weight: 600; color: var(--pass); margin-bottom: 4px; }
+    .results-header p { font-size: 13px; color: var(--text-dim); }
+    .result-block { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 8px; padding: 20px 22px; margin-bottom: 12px; }
+    .result-block.primary { border-color: var(--teal-dim); background: #122030; }
+    .result-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); font-family: var(--mono); margin-bottom: 8px; }
+    .result-content { font-size: 14px; color: var(--text); line-height: 1.75; white-space: pre-wrap; }
+    .result-content strong { color: var(--teal-lit); display: block; margin-top: 12px; margin-bottom: 2px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; font-family: var(--mono); }
+    .result-content strong:first-child { margin-top: 0; }
+
+    /* Actions after results */
+    .result-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; margin-bottom: 28px; align-items: center; }
+
+    /* Divider */
+    hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+
+    /* Chat */
+    .chat-header { margin-bottom: 16px; }
+    .chat-header h3 { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .chat-header p { font-size: 13px; color: var(--text-dim); }
+    .thread { display: flex; flex-direction: column; gap: 14px; margin-bottom: 14px; }
+    .msg { display: flex; flex-direction: column; gap: 4px; }
+    .msg-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); font-family: var(--mono); }
+    .msg-body { padding: 13px 16px; border-radius: 6px; font-size: 14px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+    .msg.user .msg-body { background: var(--navy-lit); border: 1px solid var(--border); color: var(--text); }
+    .msg.pf .msg-body { background: #122030; border: 1px solid var(--teal-dim); color: var(--text); }
+    .msg.thinking .msg-body { background: var(--navy-mid); border: 1px solid var(--border); color: var(--text-muted); font-style: italic; }
+    .msg.error .msg-body { background: #2a0f0f; border: 1px solid var(--fail); color: #e88; }
+    .chat-row { display: flex; gap: 10px; align-items: flex-end; }
+    textarea { flex: 1; background: var(--navy-lit); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.6; padding: 12px 14px; resize: none; min-height: 50px; max-height: 140px; outline: none; transition: border-color 0.15s; }
+    textarea:focus { border-color: var(--teal-dim); }
+    textarea::placeholder { color: var(--text-muted); }
+    .btn-send { background: var(--teal); border: none; border-radius: 6px; color: #0a1a28; cursor: pointer; font-family: var(--sans); font-size: 13px; font-weight: 600; padding: 0 18px; height: 50px; white-space: nowrap; transition: background 0.15s, opacity 0.15s; }
+    .btn-send:hover:not(:disabled) { background: var(--teal-lit); }
+    .btn-send:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* Error msg */
+    .inline-error { font-size: 12px; color: var(--fail); margin-top: 8px; }
+
+    /* Footer */
+    footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-muted); display: flex; gap: 16px; flex-wrap: wrap; }
+    footer a { color: var(--text-muted); text-decoration: none; }
+    footer a:hover { color: var(--teal-lit); }
+
+    /* Feedback modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; display: flex; align-items: flex-start; justify-content: center; padding: 24px 16px 40px; overflow-y: auto; }
+    .modal { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 10px; max-width: 560px; width: 100%; padding: 28px 24px; position: relative; }
+    .modal-close { position: absolute; top: 14px; right: 16px; background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; line-height: 1; padding: 4px 8px; }
+    .modal-close:hover { color: var(--text); }
+    .modal h2 { font-size: 18px; font-weight: 600; color: var(--teal-lit); margin-bottom: 6px; }
+    .modal-scope { background: var(--navy); border: 1px solid var(--border); border-left: 3px solid var(--warn); border-radius: 6px; padding: 12px 14px; margin: 16px 0 20px; font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+    .modal-scope strong { color: var(--warn); display: block; margin-bottom: 4px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+    .modal-section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); margin: 22px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .modal-section-label.secondary { color: var(--text-muted); }
+    .modal label { display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
+    .modal label strong { color: var(--text); }
+    .modal .radio-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .modal .radio-row input[type=radio] { display: none; }
+    .modal .radio-row label { background: var(--navy-lit); border: 1px solid var(--border); border-radius: 5px; padding: 6px 12px; font-size: 13px; color: var(--text-dim); cursor: pointer; transition: all 0.15s; margin: 0; }
+    .modal .radio-row input[type=radio]:checked + label { background: var(--teal-dim); border-color: var(--teal); color: var(--text); }
+    .modal textarea { width: 100%; background: var(--navy); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: var(--sans); font-size: 13px; line-height: 1.6; padding: 10px 12px; resize: vertical; min-height: 72px; margin-bottom: 16px; }
+    .modal textarea:focus { outline: none; border-color: var(--teal-dim); }
+    .modal textarea::placeholder { color: var(--text-muted); }
+    .modal-actions { display: flex; gap: 12px; margin-top: 8px; align-items: center; }
+    .modal-note { font-size: 11px; color: var(--text-muted); margin-top: 12px; }
+    .feedback-success { text-align: center; padding: 20px 0; }
+    .feedback-success .check { font-size: 36px; margin-bottom: 12px; }
+    .feedback-success h3 { font-size: 17px; font-weight: 600; color: var(--pass); margin-bottom: 8px; }
+    .feedback-success p { font-size: 13px; color: var(--text-dim); }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 520px) {
+      .options.grid { grid-template-columns: 1fr; }
+      h1 { font-size: 22px; }
+      .card { padding: 20px 16px; }
+      .result-actions { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <header>
+    <div class="brand">
+      <a href="https://wyerd.org">Wyerd</a>
+      <span>/</span>
+      <span>SQUAD BAT</span>
+      <span class="beta">BETA</span>
+    </div>
+    <h1>Pathfinder</h1>
+    <p class="tagline">Answer a few questions. Get a clear path — who to call, what you qualify for, what to bring, and what to say.</p>
+  </header>
+
+  <div class="privacy">
+    <strong>Privacy:</strong> Do not enter your full SSN, bank details, or unredacted DD-214 here. Use last-4 identifiers only. Your session is encrypted on your device — nothing is stored on our servers.
+  </div>
+
+  <!-- VAULT SCREENS -->
+  <div id="vault-section">
+
+    <!-- New vault -->
+    <div id="vault-create" class="hidden">
+      <div class="card">
+        <div class="card-question">Create a personal phrase to save your progress</div>
+        <div class="card-sub">You can close Pathfinder and come back where you left off. Your phrase is your key — it never leaves your device, and we have no way to recover it if you lose it.</div>
+        <div class="input-stack">
+          <input type="password" id="vault-pass1" placeholder="Your personal phrase (something you won't forget)" autocomplete="new-password" />
+          <input type="password" id="vault-pass2" placeholder="Confirm your phrase" autocomplete="new-password" />
+          <p class="input-note"><strong>Write it down.</strong> If you lose your phrase, your saved session cannot be recovered. There is no reset option.</p>
+          <div id="vault-create-error" class="inline-error hidden"></div>
+        </div>
+        <div class="nav">
+          <button class="link-btn" id="vault-skip-btn">Skip — don't save my session</button>
+          <button class="btn btn-primary" id="vault-create-btn">Save my progress</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Returning — unlock -->
+    <div id="vault-unlock" class="hidden">
+      <div class="card">
+        <div class="card-question">Welcome back</div>
+        <div class="card-sub">Enter your personal phrase to continue where you left off.</div>
+        <div class="input-stack">
+          <input type="password" id="vault-unlock-pass" placeholder="Your personal phrase" autocomplete="current-password" />
+          <div id="vault-unlock-error" class="inline-error hidden"></div>
+        </div>
+        <div class="nav">
+          <button class="link-btn" id="vault-start-fresh-btn">Start fresh instead</button>
+          <button class="btn btn-primary" id="vault-unlock-btn">Continue</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- INTAKE -->
+  <div id="intake-section" class="hidden">
+    <div class="progress" id="progress-bar"></div>
+    <div id="step-container"></div>
+  </div>
+
+  <!-- LOADING -->
+  <div id="loading-section" class="hidden">
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Pathfinder is mapping your route...</p>
+      <p class="loading-sub">Matching programs, contacts, and next steps to your situation.</p>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results-section" class="hidden">
+    <div class="results-header">
+      <h2>Your Path</h2>
+      <p>Based on your intake. Use this in any meeting, call, or appointment.</p>
+    </div>
+    <div id="results-content"></div>
+    <div class="result-actions">
+      <button class="btn btn-ghost" onclick="window.print()">Print / Save as PDF</button>
+      <button class="link-btn" id="start-over-btn">Start over for a different situation</button>
+      <button class="link-btn" id="open-feedback-btn">Help Pathfinder help others →</button>
+    </div>
+
+    <hr />
+
+    <div class="chat-header">
+      <h3>Need to talk through any of this?</h3>
+      <p>Pathfinder knows your situation. Ask anything — a specific program, what to say if they push back, what to bring.</p>
+    </div>
+    <div class="thread" id="thread"></div>
+    <div class="chat-row">
+      <textarea id="chat-input" placeholder="Ask Pathfinder anything about your situation..." rows="2"></textarea>
+      <button class="btn-send" id="chat-send">Ask</button>
+    </div>
+  </div>
+
+  <footer>
+    <span>Pathfinder v1 Beta — <a href="https://wyerd.org">Wyerd / SQUAD BAT</a></span>
+    <button class="link-btn" id="open-feedback-footer-btn" style="background:none;border:none;padding:0;font-size:12px;cursor:pointer;">Help Pathfinder help others</button>
+  </footer>
+
+  <!-- Feedback Modal -->
+  <div class="modal-overlay hidden" id="feedback-modal">
+    <div class="modal">
+      <button class="modal-close" id="feedback-close">✕</button>
+
+      <div id="feedback-form-wrap">
+        <h2>Help Pathfinder Help Others</h2>
+        <p style="font-size:13px;color:var(--text-dim);">You went through the process. What you found is ammunition for the next veteran.</p>
+
+        <div class="modal-scope">
+          <strong>⚑ Important — Read First</strong>
+          SQUAD BAT cannot intervene with the VA on your behalf right now. We are not lawyers, we are not the VA, and we cannot guarantee any individual outcome. What we can do: build the record. Every complaint you file — with a specific office, a specific date, a specific failure — becomes part of a documented case file. When SQUAD BAT has the standing, the numbers, and the national weight behind it, that record is exactly how we go to bat. We are not collecting complaints to feel busy. We are building the evidence base for precision, targeted advocacy that forces real accountability. Your data is a round in that chamber.
+        </div>
+
+        <div class="modal-section-label">① Data — This is the priority</div>
+
+        <label><strong>Did the contact info Pathfinder gave you actually work?</strong></label>
+        <div class="radio-row">
+          <input type="radio" name="contact_worked" id="cw-yes" value="yes"><label for="cw-yes">Yes, it worked</label>
+          <input type="radio" name="contact_worked" id="cw-partial" value="partially"><label for="cw-partial">Partially</label>
+          <input type="radio" name="contact_worked" id="cw-no" value="no"><label for="cw-no">No</label>
+          <input type="radio" name="contact_worked" id="cw-notried" value="not_tried"><label for="cw-notried">Haven't tried yet</label>
+        </div>
+
+        <label for="fb-found"><strong>What did you actually find?</strong> Phone numbers that worked or didn't, office names, wait times, programs that exist or don't in your area.</label>
+        <textarea id="fb-found" placeholder="e.g. Grand Junction VAMC benefits line is 970-263-5100, picked up same day. VSO office at 2460 Main is walk-in Tuesdays only."></textarea>
+
+        <label for="fb-missing"><strong>What was missing that would have helped you?</strong></label>
+        <textarea id="fb-missing" placeholder="e.g. No info on the SSVF office in Mesa County. Didn't know I needed to bring a buddy statement."></textarea>
+
+        <div class="modal-section-label secondary">② Your Experience — Optional</div>
+
+        <label for="fb-experience">How did Pathfinder work for you? What was clear, what was confusing?</label>
+        <textarea id="fb-experience" placeholder="Optional — this goes to a human and helps improve the tool."></textarea>
+
+        <div class="modal-section-label secondary">③ File a Complaint — Optional</div>
+
+        <label for="fb-complaint"><strong>Where did the system fail you?</strong> <span style="color:var(--text-dim)">Be specific — office name, date, what happened, what they said. Vague complaints help no one. Documented ones build cases.</span></label>
+        <textarea id="fb-complaint" placeholder="e.g. Grand Junction VA Regional Office, May 2026. Submitted HLR in January, called 3 times, told to 'just wait.' No status, no contact. Rep gave wrong form number twice."></textarea>
+
+        <p class="modal-note">Your intake answers are not sent with this form. Only what you type here is shared. Location is added from your intake if you provided it.</p>
+
+        <div class="modal-actions">
+          <button class="btn btn-primary" id="feedback-submit">Contribute to Pathfinder</button>
+          <button class="btn btn-ghost" id="feedback-cancel">Cancel</button>
+        </div>
+
+        <div id="feedback-error" style="display:none;color:var(--fail);font-size:13px;margin-top:10px;"></div>
+      </div>
+
+      <div id="feedback-success-wrap" class="feedback-success hidden">
+        <div class="check">✓</div>
+        <h3>Contribution received.</h3>
+        <p>What you found is now part of the database. The next veteran who comes through here gets better information because of it.</p>
+        <button class="btn btn-ghost" id="feedback-done" style="margin-top:16px;">Close</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+const WORKER = 'https://pathfinder-worker.justinaiark101.workers.dev';
+const STORAGE_KEY = 'pf_session_v1';
+const SALT_KEY    = 'pf_salt_v1';
+
+// ── Crypto helpers ────────────────────────────────────────────────────────────
+
+async function deriveKey(passphrase, saltBytes) {
+  const enc = new TextEncoder();
+  const raw = await crypto.subtle.importKey('raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: saltBytes, iterations: 150000, hash: 'SHA-256' },
+    raw,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
+async function encryptSession(passphrase, data) {
+  let saltArr = JSON.parse(localStorage.getItem(SALT_KEY) || 'null');
+  if (!saltArr) {
+    saltArr = Array.from(crypto.getRandomValues(new Uint8Array(16)));
+    localStorage.setItem(SALT_KEY, JSON.stringify(saltArr));
+  }
+  const salt = new Uint8Array(saltArr);
+  const key  = await deriveKey(passphrase, salt);
+  const iv   = crypto.getRandomValues(new Uint8Array(12));
+  const enc  = new TextEncoder();
+  const ct   = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(JSON.stringify(data)));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ iv: Array.from(iv), ct: Array.from(new Uint8Array(ct)) }));
+}
+
+async function decryptSession(passphrase) {
+  const stored  = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+  const saltArr = JSON.parse(localStorage.getItem(SALT_KEY) || 'null');
+  if (!stored || !saltArr) return null;
+  try {
+    const key  = await deriveKey(passphrase, new Uint8Array(saltArr));
+    const plain = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: new Uint8Array(stored.iv) },
+      key,
+      new Uint8Array(stored.ct)
+    );
+    return JSON.parse(new TextDecoder().decode(plain));
+  } catch { return null; }
+}
+
+function hasStoredSession() {
+  return !!(localStorage.getItem(STORAGE_KEY) && localStorage.getItem(SALT_KEY));
+}
+
+function clearSession() {
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(SALT_KEY);
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+
+let currentStep  = 0;
+let intake       = {};
+let chatHistory  = [];
+let chatBusy     = false;
+let vaultPass    = null; // null = no vault (skip mode)
+let savedResults = null;
+
+// ── Intake steps ──────────────────────────────────────────────────────────────
+
+const STEPS = [
+  {
+    id: 'need', question: "What do you need help with?",
+    sub: "Pick everything that applies — Pathfinder will map all of it.", type: 'multi',
+    options: [
+      { value: 'housing',        label: 'Housing',               desc: 'Finding housing, vouchers, landlord issues, eviction risk',      icon: '🏠' },
+      { value: 'medical',        label: 'Healthcare / Medical',   desc: 'VA healthcare enrollment, care access, mental health',           icon: '🏥' },
+      { value: 'claims',         label: 'Disability Claim',       desc: 'Filing a claim, rating increase, appeals, TDIU',                icon: '📋' },
+      { value: 'benefits',       label: 'VA Benefits / Programs', desc: 'GI Bill, pension, home loan, survivor benefits, burial',        icon: '🎖️' },
+      { value: 'toxic_exposure', label: 'Toxic Exposure',         desc: 'Agent Orange, burn pits, Camp Lejeune water — era-specific programs', icon: '⚠️' },
+      { value: 'employment',     label: 'Employment / Training',  desc: 'Jobs, retraining, SkillBridge, transition assistance',          icon: '💼' },
+      { value: 'business',       label: 'Business / Contracting', desc: 'Veteran-owned business certification, federal contracts, GSA surplus', icon: '🏢' },
+      { value: 'legal',          label: 'Legal Issue',            desc: 'Discharge upgrade, eviction notice, court date, supervision',  icon: '⚖️' },
+      { value: 'crisis',         label: 'Crisis / Immediate',     desc: 'I need help right now — tonight or today',                    icon: '🚨' },
+    ],
+  },
+  {
+    id: 'era', question: "When did you serve?",
+    sub: "Pick all that apply — era determines which programs you can access.", type: 'multi',
+    options: [
+      { value: 'wwii',         label: 'World War II',              desc: '1941–1945', icon: '⭐' },
+      { value: 'korea',        label: 'Korean War',                desc: '1950–1953 — the Forgotten War; your service was not forgotten here', icon: '⭐' },
+      { value: 'vietnam',      label: 'Vietnam Era',               desc: '1964–1975 — Agent Orange presumptive conditions, many still unclaimed', icon: '⭐' },
+      { value: 'cold_war',     label: 'Post-Vietnam / Cold War',   desc: '1975–1990 — includes Camp Lejeune water contamination period', icon: '⭐' },
+      { value: 'gulf_war',     label: 'Gulf War',                  desc: '1990–2001 — Gulf War Syndrome presumptives, PACT Act coverage', icon: '⭐' },
+      { value: 'post_911',     label: 'Post-9/11 (OEF / OIF / OND)', desc: '2001–present — PACT Act covers burn pit and toxic exposure', icon: '⭐' },
+      { value: 'transitioning',label: 'Currently separating',      desc: 'Active duty transitioning out now — SkillBridge and TAP available', icon: '🔄' },
+    ],
+  },
+  {
+    id: 'housing_status', question: "What's your housing situation right now?",
+    sub: "Pick the one that best describes where you are tonight.", type: 'single',
+    options: [
+      { value: 'unsheltered',    label: 'Outside / no shelter',   desc: 'Sleeping outside, no place to go tonight', icon: '⛺' },
+      { value: 'car',            label: 'In my car',               desc: 'Sleeping in a vehicle',                   icon: '🚗' },
+      { value: 'shelter',        label: 'In a shelter',            desc: 'Emergency shelter or transitional housing',icon: '🏢' },
+      { value: 'couch',          label: 'Couch surfing',           desc: "Staying with someone — not my place",     icon: '🛋️' },
+      { value: 'unstable_housed',label: 'Housed but at risk',      desc: 'Facing eviction or losing housing soon',  icon: '⚠️' },
+      { value: 'stable',         label: 'Stable housing',          desc: 'Housing is secure — need other help',     icon: '✅' },
+    ],
+  },
+  {
+    id: 'va_status', question: "Are you connected to the VA?",
+    sub: "This affects which programs you can access.", type: 'single',
+    options: [
+      { value: 'enrolled_active',   label: 'Yes — enrolled and using VA',      desc: 'I have a VA doctor or active case', icon: '✅' },
+      { value: 'enrolled_inactive', label: 'Enrolled but not using it',        desc: "I'm in the system but haven't used it", icon: '⏸️' },
+      { value: 'not_enrolled',      label: 'Never enrolled',                   desc: "Veteran but haven't signed up",    icon: '❌' },
+      { value: 'unknown',           label: 'Not sure',                         desc: "Don't know my VA status",          icon: '❓' },
+    ],
+  },
+  {
+    id: 'discharge', question: "What type of discharge do you have?",
+    sub: "If you're not sure, pick your best guess — it's not permanent.", type: 'single',
+    options: [
+      { value: 'honorable', label: 'Honorable',                              icon: '🎖️' },
+      { value: 'general',   label: 'General (Under Honorable Conditions)',   icon: '📄' },
+      { value: 'oth',       label: 'Other Than Honorable (OTH)', desc: 'Limits some programs but not all — upgrade is possible', icon: '⚠️' },
+      { value: 'unknown',   label: "Not sure / don't have my DD-214",        icon: '❓' },
+    ],
+  },
+  {
+    id: 'income', question: "Roughly what's your monthly income?",
+    sub: "All sources — pay, disability, benefits, etc. Approximate is fine.", type: 'single',
+    options: [
+      { value: 'none',       label: 'No income right now',       icon: '—'  },
+      { value: 'under_500',  label: 'Under $500 / month',        icon: '💵' },
+      { value: '500_1000',   label: '$500 – $1,000 / month',     icon: '💵' },
+      { value: '1000_2000',  label: '$1,000 – $2,000 / month',   icon: '💵' },
+      { value: 'over_2000',  label: 'Over $2,000 / month',       icon: '💵' },
+    ],
+  },
+  {
+    id: 'location', question: "What state and county are you in?",
+    sub: "Lets Pathfinder find the right offices and contacts for your area.", type: 'location',
+  },
+  {
+    id: 'urgency', question: "How urgent is your situation?",
+    sub: null, type: 'single',
+    options: [
+      { value: 'tonight',  label: 'I need help tonight',    desc: 'Immediate — crisis level',              icon: '🚨' },
+      { value: 'days',     label: 'In the next few days',   desc: 'Very soon — deadline or acute need',    icon: '⚡' },
+      { value: 'weeks',    label: 'In the next few weeks',  desc: 'Important but not immediate',           icon: '📅' },
+      { value: 'planning', label: 'Planning ahead',         desc: 'No immediate crisis — getting prepared',icon: '🗺️' },
+    ],
+  },
+];
+
+// ── Vault flow ────────────────────────────────────────────────────────────────
+
+function show(id) { document.getElementById(id).classList.remove('hidden'); }
+function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+function startIntake() {
+  hide('vault-section');
+  show('intake-section');
+  renderProgress();
+  renderStep();
+}
+
+function initVault() {
+  if (hasStoredSession()) {
+    show('vault-unlock');
+  } else {
+    show('vault-create');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initVault();
+
+  // Create vault
+  document.getElementById('vault-create-btn').addEventListener('click', async () => {
+    const p1 = document.getElementById('vault-pass1').value;
+    const p2 = document.getElementById('vault-pass2').value;
+    const err = document.getElementById('vault-create-error');
+    err.classList.add('hidden');
+
+    if (!p1 || p1.length < 6) { err.textContent = 'Phrase must be at least 6 characters.'; err.classList.remove('hidden'); return; }
+    if (p1 !== p2) { err.textContent = 'Phrases do not match.'; err.classList.remove('hidden'); return; }
+
+    vaultPass = p1;
+    startIntake();
+  });
+
+  // Skip vault
+  document.getElementById('vault-skip-btn').addEventListener('click', () => {
+    vaultPass = null;
+    startIntake();
+  });
+
+  // Unlock vault
+  document.getElementById('vault-unlock-btn').addEventListener('click', async () => {
+    const pass = document.getElementById('vault-unlock-pass').value;
+    const err  = document.getElementById('vault-unlock-error');
+    err.classList.add('hidden');
+
+    if (!pass) { err.textContent = 'Enter your phrase.'; err.classList.remove('hidden'); return; }
+
+    const session = await decryptSession(pass);
+    if (!session) { err.textContent = 'Phrase is incorrect. Check your phrase and try again.'; err.classList.remove('hidden'); return; }
+
+    vaultPass = pass;
+    restoreSession(session);
+  });
+
+  // Start fresh
+  document.getElementById('vault-start-fresh-btn').addEventListener('click', () => {
+    clearSession();
+    hide('vault-unlock');
+    show('vault-create');
+  });
+
+  // Start over
+  document.getElementById('start-over-btn').addEventListener('click', () => {
+    if (!confirm('Start over? This will clear your current results and intake.')) return;
+    clearSession();
+    intake = {}; chatHistory = []; currentStep = 0; savedResults = null;
+    hide('results-section');
+    document.getElementById('thread').innerHTML = '';
+    document.getElementById('results-content').innerHTML = '';
+    show('vault-section');
+    hide('vault-unlock');
+    hide('vault-create');
+    show('vault-create');
+  });
+
+  // Chat
+  document.getElementById('chat-send').addEventListener('click', sendChat);
+  document.getElementById('chat-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+  });
+  document.getElementById('chat-input').addEventListener('input', function () {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 140) + 'px';
+  });
+});
+
+// ── Session save/restore ──────────────────────────────────────────────────────
+
+async function saveSession() {
+  if (!vaultPass) return;
+  await encryptSession(vaultPass, { currentStep, intake, savedResults, chatHistory });
+}
+
+function restoreSession(session) {
+  currentStep  = session.currentStep  || 0;
+  intake       = session.intake       || {};
+  savedResults = session.savedResults || null;
+  chatHistory  = session.chatHistory  || [];
+
+  hide('vault-section');
+
+  if (savedResults) {
+    showResults(savedResults, true);
+    // Restore chat
+    chatHistory.forEach(m => {
+      if (m.role === 'user') addMsg('user', m.content);
+      else if (m.role === 'assistant') addMsg('pf', m.content);
+    });
+  } else {
+    show('intake-section');
+    renderProgress();
+    renderStep();
+  }
+}
+
+// ── Render intake ─────────────────────────────────────────────────────────────
+
+function renderProgress() {
+  const bar = document.getElementById('progress-bar');
+  bar.innerHTML = '';
+  STEPS.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'progress-dot' + (i < currentStep ? ' done' : i === currentStep ? ' active' : '');
+    bar.appendChild(dot);
+  });
+  const lbl = document.createElement('span');
+  lbl.className = 'progress-label';
+  lbl.textContent = `${currentStep + 1} / ${STEPS.length}`;
+  bar.appendChild(lbl);
+}
+
+function renderStep() {
+  const step = STEPS[currentStep];
+  const container = document.getElementById('step-container');
+  const isLast = currentStep === STEPS.length - 1;
+
+  let html = `<div class="card">
+    <div class="card-question">${step.question}</div>
+    ${step.sub ? `<div class="card-sub">${step.sub}</div>` : ''}`;
+
+  if (step.type === 'single') {
+    html += `<div class="options">`;
+    step.options.forEach(opt => {
+      html += `<button class="opt" data-value="${opt.value}">
+        ${opt.icon ? `<span class="opt-icon">${opt.icon}</span>` : ''}
+        <span class="opt-body">
+          <span class="opt-label">${opt.label}</span>
+          ${opt.desc ? `<span class="opt-desc">${opt.desc}</span>` : ''}
+        </span></button>`;
+    });
+    html += `</div>`;
+  } else if (step.type === 'multi') {
+    const cur = Array.isArray(intake[step.id]) ? intake[step.id] : [];
+    html += `<div class="options">`;
+    step.options.forEach(opt => {
+      html += `<button class="opt${cur.includes(opt.value) ? ' selected' : ''}" data-value="${opt.value}">
+        ${opt.icon ? `<span class="opt-icon">${opt.icon}</span>` : ''}
+        <span class="opt-body">
+          <span class="opt-label">${opt.label}</span>
+          ${opt.desc ? `<span class="opt-desc">${opt.desc}</span>` : ''}
+        </span></button>`;
+    });
+    html += `</div>`;
+    const hasSelected = cur.length > 0;
+    html += `<div class="nav">
+      ${currentStep > 0 ? `<button class="btn btn-ghost" id="btn-back">Back</button>` : `<span></span>`}
+      <div style="display:flex;gap:12px;align-items:center">
+        <button class="link-btn" id="btn-skip">Skip</button>
+        <button class="btn btn-primary" id="btn-next" ${!hasSelected ? 'disabled' : ''}>${isLast ? 'Find My Path' : 'Next'}</button>
+      </div></div>`;
+  } else if (step.type === 'location') {
+    const state  = intake.location?.state  || '';
+    const county = intake.location?.county || '';
+    html += `<div class="input-stack">
+      <input type="text" id="loc-state" placeholder="State (e.g., CO)" maxlength="2" value="${state}" />
+      <input type="text" id="loc-county" placeholder="County (e.g., Mesa)" value="${county}" />
+    </div>
+    <div class="nav">
+      ${currentStep > 0 ? `<button class="btn btn-ghost" id="btn-back">Back</button>` : `<span></span>`}
+      <div style="display:flex;gap:12px;align-items:center">
+        <button class="link-btn" id="btn-skip">Skip</button>
+        <button class="btn btn-primary" id="btn-next">${isLast ? 'Find My Path' : 'Next'}</button>
+      </div></div>`;
+  }
+
+  if (step.type === 'single') {
+    html += `<div class="nav">
+      ${currentStep > 0 ? `<button class="btn btn-ghost" id="btn-back">Back</button>` : `<span></span>`}
+      <button class="link-btn" id="btn-skip">Skip</button>
+    </div>`;
+  }
+
+  html += `</div>`;
+  container.innerHTML = html;
+
+  // Wire events
+  if (step.type === 'single') {
+    container.querySelectorAll('.opt').forEach(btn => {
+      btn.addEventListener('click', () => { intake[step.id] = btn.dataset.value; advance(); });
+    });
+  } else if (step.type === 'multi') {
+    container.querySelectorAll('.opt').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!Array.isArray(intake[step.id])) intake[step.id] = [];
+        const v = btn.dataset.value;
+        const idx = intake[step.id].indexOf(v);
+        if (idx >= 0) intake[step.id].splice(idx, 1); else intake[step.id].push(v);
+        btn.classList.toggle('selected', intake[step.id].includes(v));
+        document.getElementById('btn-next').disabled = intake[step.id].length === 0;
+      });
+    });
+    document.getElementById('btn-next')?.addEventListener('click', advance);
+  } else if (step.type === 'location') {
+    document.getElementById('btn-next')?.addEventListener('click', () => {
+      const state  = document.getElementById('loc-state').value.trim().toUpperCase();
+      const county = document.getElementById('loc-county').value.trim();
+      intake.location = { state: state || null, county: county || null };
+      advance();
+    });
+  }
+
+  document.getElementById('btn-back')?.addEventListener('click', () => { currentStep--; renderProgress(); renderStep(); });
+  document.getElementById('btn-skip')?.addEventListener('click', advance);
+}
+
+async function advance() {
+  await saveSession();
+  currentStep++;
+  if (currentStep >= STEPS.length) {
+    submitIntake();
+  } else {
+    renderProgress();
+    renderStep();
+  }
+}
+
+// ── Submit + results ──────────────────────────────────────────────────────────
+
+async function submitIntake() {
+  hide('intake-section');
+  show('loading-section');
+
+  try {
+    const res  = await fetch(`${WORKER}/process`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ intake }),
+    });
+    const data = await res.json();
+    hide('loading-section');
+    if (!res.ok || data.error) { showErrorResult(data.error || 'Something went wrong. Refresh and try again.'); return; }
+    savedResults = data.response;
+    await saveSession();
+    showResults(data.response);
+  } catch {
+    hide('loading-section');
+    showErrorResult('Could not reach Pathfinder. Check your connection and try again.');
+  }
+}
+
+function fmt(text) {
+  return text.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+}
+
+function showErrorResult(msg) {
+  show('results-section');
+  document.getElementById('results-content').innerHTML = `
+    <div class="result-block" style="border-color:var(--fail);background:#1a0808">
+      <div class="result-content">${msg}</div>
+    </div>`;
+}
+
+function showResults(text, isRestore = false) {
+  show('results-section');
+  const sections = text.split(/(?=\*\*[A-Z][A-Z\s\/]+\*\*)/);
+  let html = '';
+  sections.forEach((s, i) => {
+    if (!s.trim()) return;
+    const isPrimary = i === 0 || /^\*\*PRIMARY PATH\*\*/.test(s);
+    html += `<div class="result-block${isPrimary ? ' primary' : ''}"><div class="result-content">${fmt(s.trim())}</div></div>`;
+  });
+  document.getElementById('results-content').innerHTML = html || `<div class="result-block primary"><div class="result-content">${fmt(text)}</div></div>`;
+}
+
+// ── Chat ──────────────────────────────────────────────────────────────────────
+
+function addMsg(role, content, type = '') {
+  const thread = document.getElementById('thread');
+  const el = document.createElement('div');
+  el.className = `msg ${role}${type ? ' ' + type : ''}`;
+  const lbl = document.createElement('div'); lbl.className = 'msg-label'; lbl.textContent = role === 'user' ? 'You' : 'Pathfinder';
+  const body = document.createElement('div'); body.className = 'msg-body';
+  if (role === 'pf' && !type) body.innerHTML = fmt(content); else body.textContent = content;
+  el.appendChild(lbl); el.appendChild(body); thread.appendChild(el);
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  return el;
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text  = input.value.trim();
+  if (!text || chatBusy) return;
+
+  chatBusy = true;
+  document.getElementById('chat-send').disabled = true;
+  input.value = ''; input.style.height = 'auto';
+
+  addMsg('user', text);
+  chatHistory.push({ role: 'user', content: text });
+  const thinking = addMsg('pf', 'Checking...', 'thinking');
+
+  try {
+    const res  = await fetch(`${WORKER}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, intake, history: chatHistory.slice(0, -1) }),
+    });
+    const data = await res.json();
+    thinking.remove();
+
+    if (!res.ok || data.error) { addMsg('pf', data.error || 'Something went wrong.', 'error'); }
+    else {
+      addMsg('pf', data.response);
+      chatHistory.push({ role: 'assistant', content: data.response });
+      if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
+      await saveSession();
+    }
+  } catch { thinking.remove(); addMsg('pf', 'Could not reach Pathfinder. Check your connection.', 'error'); }
+
+  chatBusy = false;
+  document.getElementById('chat-send').disabled = false;
+  input.focus();
+}
+
+// ── Feedback modal ────────────────────────────────────────────────────────────
+
+const WORKER = 'https://pathfinder-worker.justinaiark101.workers.dev';
+
+function openFeedback() {
+  document.getElementById('feedback-modal').classList.remove('hidden');
+  document.getElementById('feedback-form-wrap').classList.remove('hidden');
+  document.getElementById('feedback-success-wrap').classList.add('hidden');
+  document.getElementById('feedback-error').style.display = 'none';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeFeedback() {
+  document.getElementById('feedback-modal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('open-feedback-btn')?.addEventListener('click', openFeedback);
+document.getElementById('open-feedback-footer-btn')?.addEventListener('click', openFeedback);
+document.getElementById('feedback-close').addEventListener('click', closeFeedback);
+document.getElementById('feedback-cancel').addEventListener('click', closeFeedback);
+document.getElementById('feedback-done').addEventListener('click', closeFeedback);
+
+// Close on overlay click (outside modal box)
+document.getElementById('feedback-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('feedback-modal')) closeFeedback();
+});
+
+document.getElementById('feedback-submit').addEventListener('click', async () => {
+  const contact_worked = document.querySelector('input[name="contact_worked"]:checked')?.value || null;
+  const what_you_found = document.getElementById('fb-found').value.trim();
+  const what_was_missing = document.getElementById('fb-missing').value.trim();
+  const experience = document.getElementById('fb-experience').value.trim();
+  const complaint = document.getElementById('fb-complaint').value.trim();
+
+  if (!contact_worked && !what_you_found && !what_was_missing && !experience && !complaint) {
+    const err = document.getElementById('feedback-error');
+    err.textContent = 'Please fill in at least one field before submitting.';
+    err.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('feedback-submit');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  const payload = {
+    contact_worked,
+    what_you_found: what_you_found || null,
+    what_was_missing: what_was_missing || null,
+    experience: experience || null,
+    complaint: complaint || null,
+    state: intake?.location?.state || null,
+    county: intake?.location?.county || null,
+    need_area: intake?.need ? (Array.isArray(intake.need) ? intake.need.join(', ') : intake.need) : null,
+  };
+
+  try {
+    const res = await fetch(`${WORKER}/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (res.ok && data.ok) {
+      document.getElementById('feedback-form-wrap').classList.add('hidden');
+      document.getElementById('feedback-success-wrap').classList.remove('hidden');
+    } else {
+      throw new Error(data.error || 'Unknown error');
+    }
+  } catch (err) {
+    const errEl = document.getElementById('feedback-error');
+    errEl.textContent = 'Could not submit — please try again or email admin@wyerd.org.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Contribute to Pathfinder';
+  }
+});
+</script>
+</body>
+</html>
