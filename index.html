@@ -196,6 +196,30 @@
     <strong>Privacy:</strong> Do not enter your full SSN, bank details, or unredacted DD-214 here. Use last-4 identifiers only. Your session is encrypted on your device — nothing is stored on our servers.
   </div>
 
+  <!-- MODE SELECT -->
+  <div id="mode-section" class="hidden">
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-question">How do you want to start?</div>
+      <div class="card-sub">Both paths get you to the same place — a clear action plan built around your situation.</div>
+      <div class="options" style="margin-top:20px;">
+        <button class="opt" id="mode-guided">
+          <span class="opt-icon">🧭</span>
+          <span class="opt-body">
+            <span class="opt-label">Help me figure out what I need</span>
+            <span class="opt-desc">I'm not sure where to start — ask me plain questions and map it out</span>
+          </span>
+        </button>
+        <button class="opt" id="mode-direct">
+          <span class="opt-icon">➡️</span>
+          <span class="opt-body">
+            <span class="opt-label">I know what I need help with</span>
+            <span class="opt-desc">Take me straight to the full intake — I'll pick my categories</span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- VAULT SCREENS -->
   <div id="vault-section">
 
@@ -404,30 +428,81 @@ let currentStep  = 0;
 let intake       = {};
 let chatHistory  = [];
 let chatBusy     = false;
-let vaultPass    = null; // null = no vault (skip mode)
+let vaultPass    = null;
 let savedResults = null;
+let activeSteps  = null; // set at mode select
 
 // ── Intake steps ──────────────────────────────────────────────────────────────
 
 const STEPS = [
+  // ── GATE 1: Service status ────────────────────────────────────────────────────
   {
-    id: 'need', question: "What do you need help with?",
-    sub: "Pick everything that applies — Pathfinder will map all of it.", type: 'multi',
+    id: 'service_status', question: "What is your service status?",
+    sub: "Pathfinder needs this before anything else — eligibility is completely different depending on where you stand. Everything else is built on this answer.", type: 'single',
     options: [
-      { value: 'housing',        label: 'Housing',               desc: 'Finding housing, vouchers, landlord issues, eviction risk',      icon: '🏠' },
-      { value: 'medical',        label: 'Healthcare / Medical',   desc: 'VA healthcare enrollment, care access, mental health',           icon: '🏥' },
-      { value: 'claims',         label: 'Disability Claim',       desc: 'Filing a claim, rating increase, appeals, TDIU',                icon: '📋' },
-      { value: 'benefits',       label: 'VA Benefits / Programs', desc: 'GI Bill, pension, home loan, survivor benefits, burial',        icon: '🎖️' },
-      { value: 'toxic_exposure', label: 'Toxic Exposure',         desc: 'Agent Orange, burn pits, Camp Lejeune water — era-specific programs', icon: '⚠️' },
-      { value: 'employment',     label: 'Employment / Training',  desc: 'Jobs, retraining, SkillBridge, transition assistance',          icon: '💼' },
-      { value: 'business',       label: 'Business / Contracting', desc: 'Veteran-owned business certification, federal contracts, GSA surplus', icon: '🏢' },
-      { value: 'legal',          label: 'Legal Issue',            desc: 'Discharge upgrade, eviction notice, court date, supervision',  icon: '⚖️' },
-      { value: 'crisis',         label: 'Crisis / Immediate',     desc: 'I need help right now — tonight or today',                    icon: '🚨' },
+      { value: 'veteran',          label: 'Veteran — I have been discharged',           desc: 'Served and separated from active duty, Reserve, or Guard', icon: '🎖️' },
+      { value: 'active_duty',      label: 'Currently on active duty',                   desc: 'Full-time military service right now', icon: '⭐' },
+      { value: 'reserve_guard',    label: 'Reserve or National Guard — not mobilized',  desc: 'Drilling but not currently on federal orders', icon: '🛡️' },
+      { value: 'activated',        label: 'Reserve / Guard — currently activated',      desc: 'Mobilized under Title 10 federal orders', icon: '🛡️' },
+      { value: 'surviving_family', label: 'Surviving family member of a veteran',       desc: 'Spouse, child, or dependent of a deceased veteran', icon: '🤝' },
+      { value: 'caregiver',        label: 'Caregiver for a veteran',                    desc: 'Providing care for a veteran with a service-connected disability', icon: '🤝' },
+      { value: 'not_sure',         label: "I'm not sure of my status",                  desc: "Not certain which category applies — Pathfinder will help figure it out", icon: '❓' },
     ],
   },
+  // ── GATE 2: Discharge character — changes everything, must be asked early ────
+  {
+    id: 'discharge', question: "What type of discharge do you have?",
+    sub: "This isn't a judgment — it's a routing question. Even an OTH or Dishonorable doesn't mean zero options. It means a different set of options, and Pathfinder will be honest about what those are.",
+    type: 'single',
+    skip: (i) => ['surviving_family', 'caregiver', 'active_duty'].includes(i.service_status),
+    options: [
+      { value: 'honorable',    label: 'Honorable',                                    desc: 'Full access to VA benefits', icon: '🎖️' },
+      { value: 'general_uhc',  label: 'General — Under Honorable Conditions',         desc: 'Most VA benefits available', icon: '📄' },
+      { value: 'oth',          label: 'Other Than Honorable (OTH)',                   desc: 'Significantly limits benefits — but not zero. Upgrade path exists.', icon: '⚠️' },
+      { value: 'bcd',          label: 'Bad Conduct Discharge (BCD)',                  desc: 'Issued by court-martial. Very limited federal benefits. State resources still available.', icon: '⚠️' },
+      { value: 'dishonorable', label: 'Dishonorable',                                 desc: 'Most federal benefits unavailable. Emergency mental health and discharge upgrade still possible.', icon: '⚠️' },
+      { value: 'entry_level',  label: 'Entry Level Separation',                       desc: 'Served less than 180 days. Limited eligibility — circumstances matter.', icon: '📄' },
+      { value: 'medical',      label: 'Medical Discharge / IDES',                     desc: 'Service-connected medical separation — specific routing applies', icon: '🏥' },
+      { value: 'unknown',      label: "Not sure / don't have my DD-214",              desc: "Pathfinder can still help — we'll note it", icon: '❓' },
+    ],
+  },
+  // ── GATE 3: Branch — affects program availability beyond medical ─────────────
+  {
+    id: 'branch', question: "What branch did you serve in?",
+    sub: "Pick all that apply — many veterans served in more than one. Reserves, Guard, and Coast Guard are all here.", type: 'multi',
+    skip: (i) => ['surviving_family', 'caregiver'].includes(i.service_status),
+    options: [
+      { value: 'army',         label: 'Army',                  icon: '⭐' },
+      { value: 'navy',         label: 'Navy',                  icon: '⚓' },
+      { value: 'marines',      label: 'Marine Corps',          icon: '🦅' },
+      { value: 'air_force',    label: 'Air Force',             icon: '✈️' },
+      { value: 'space_force',  label: 'Space Force',           desc: 'Est. 2019', icon: '🚀' },
+      { value: 'coast_guard',  label: 'Coast Guard',           desc: 'Full VA eligibility — often overlooked', icon: '⚓' },
+      { value: 'army_ng',      label: 'Army National Guard',   icon: '🛡️' },
+      { value: 'army_reserve', label: 'Army Reserve',          icon: '🛡️' },
+      { value: 'air_ng',       label: 'Air National Guard',    icon: '🛡️' },
+      { value: 'af_reserve',   label: 'Air Force Reserve',     icon: '🛡️' },
+      { value: 'navy_reserve', label: 'Navy Reserve',          icon: '🛡️' },
+      { value: 'usmc_reserve', label: 'Marine Corps Reserve',  icon: '🛡️' },
+      { value: 'uscg_reserve', label: 'Coast Guard Reserve',   icon: '🛡️' },
+    ],
+  },
+  // ── GATE 4: Component ─────────────────────────────────────────────────────────
+  {
+    id: 'component', question: "Enlisted or officer?",
+    sub: "Pick all that apply — some veterans were enlisted then commissioned, or served as warrant officers.", type: 'multi',
+    skip: (i) => ['surviving_family', 'caregiver'].includes(i.service_status),
+    options: [
+      { value: 'enlisted', label: 'Enlisted',              desc: 'E-1 through E-9',  icon: '⭐' },
+      { value: 'warrant',  label: 'Warrant Officer',       desc: 'WO1 through CW5',  icon: '⭐' },
+      { value: 'officer',  label: 'Commissioned Officer',  desc: 'O-1 through O-10', icon: '⭐' },
+    ],
+  },
+  // ── GATE 5: Era ───────────────────────────────────────────────────────────────
   {
     id: 'era', question: "When did you serve?",
     sub: "Pick all that apply — era determines which programs you can access.", type: 'multi',
+    skip: (i) => ['surviving_family', 'caregiver'].includes(i.service_status),
     options: [
       { value: 'wwii',         label: 'World War II',              desc: '1941–1945', icon: '⭐' },
       { value: 'korea',        label: 'Korean War',                desc: '1950–1953 — the Forgotten War; your service was not forgotten here', icon: '⭐' },
@@ -436,6 +511,22 @@ const STEPS = [
       { value: 'gulf_war',     label: 'Gulf War',                  desc: '1990–2001 — Gulf War Syndrome presumptives, PACT Act coverage', icon: '⭐' },
       { value: 'post_911',     label: 'Post-9/11 (OEF / OIF / OND)', desc: '2001–present — PACT Act covers burn pit and toxic exposure', icon: '⭐' },
       { value: 'transitioning',label: 'Currently separating',      desc: 'Active duty transitioning out now — SkillBridge and TAP available', icon: '🔄' },
+    ],
+  },
+  // ── NEEDS: Now that we know who they are ─────────────────────────────────────
+  {
+    id: 'need', question: "What do you need help with?",
+    sub: "Pick everything that applies — Pathfinder will map all of it.", type: 'multi',
+    options: [
+      { value: 'housing',        label: 'Housing',               desc: 'Finding housing, vouchers, landlord issues, eviction risk',           icon: '🏠' },
+      { value: 'medical',        label: 'Healthcare / Medical',   desc: 'VA healthcare enrollment, care access, mental health',                icon: '🏥' },
+      { value: 'claims',         label: 'Disability Claim',       desc: 'Filing a claim, rating increase, appeals, TDIU',                     icon: '📋' },
+      { value: 'benefits',       label: 'VA Benefits / Programs', desc: 'GI Bill, pension, home loan, survivor benefits, burial',             icon: '🎖️' },
+      { value: 'toxic_exposure', label: 'Toxic Exposure',         desc: 'Agent Orange, burn pits, Camp Lejeune water — era-specific programs', icon: '⚠️' },
+      { value: 'employment',     label: 'Employment / Training',  desc: 'Jobs, retraining, SkillBridge, transition assistance',               icon: '💼' },
+      { value: 'business',       label: 'Business / Contracting', desc: 'Veteran-owned business cert, federal contracts, GSA surplus',        icon: '🏢' },
+      { value: 'legal',          label: 'Legal Issue',            desc: 'Discharge upgrade, eviction notice, court date, supervision',        icon: '⚖️' },
+      { value: 'crisis',         label: 'Crisis / Immediate',     desc: 'I need help right now — tonight or today',                          icon: '🚨' },
     ],
   },
   {
@@ -451,23 +542,43 @@ const STEPS = [
     ],
   },
   {
-    id: 'va_status', question: "Are you connected to the VA?",
-    sub: "This affects which programs you can access.", type: 'single',
+    id: 'va_history', question: "What's your history with the VA?",
+    sub: "A first-time filer and someone already receiving benefits need completely different paths.", type: 'single',
     options: [
-      { value: 'enrolled_active',   label: 'Yes — enrolled and using VA',      desc: 'I have a VA doctor or active case', icon: '✅' },
-      { value: 'enrolled_inactive', label: 'Enrolled but not using it',        desc: "I'm in the system but haven't used it", icon: '⏸️' },
-      { value: 'not_enrolled',      label: 'Never enrolled',                   desc: "Veteran but haven't signed up",    icon: '❌' },
-      { value: 'unknown',           label: 'Not sure',                         desc: "Don't know my VA status",          icon: '❓' },
+      { value: 'never',              label: 'Never contacted the VA',                  desc: "Starting from zero — don't know where to begin", icon: '❓' },
+      { value: 'contacted_only',     label: 'Contacted them but never enrolled',       desc: 'Fell through the cracks or gave up', icon: '⏸️' },
+      { value: 'healthcare_only',    label: 'Enrolled in VA healthcare — no disability claim', desc: "Using the clinic but haven't filed for compensation", icon: '🏥' },
+      { value: 'claim_active',       label: 'I have an active claim or appeal pending', desc: 'Filed and waiting, or currently fighting a decision', icon: '⏳' },
+      { value: 'receiving_comp',     label: 'I receive VA disability compensation',    desc: 'Already in the system with a rating', icon: '✅' },
+      { value: 'denied',             label: 'I was denied and never appealed',         desc: 'Got a no and stopped — want to know my options now', icon: '❌' },
     ],
   },
   {
-    id: 'discharge', question: "What type of discharge do you have?",
-    sub: "If you're not sure, pick your best guess — it's not permanent.", type: 'single',
+    id: 'disability_rating', question: "What is your current disability rating?",
+    sub: "If you don't have one yet, pick accordingly — this helps find what you may be leaving on the table.", type: 'single',
     options: [
-      { value: 'honorable', label: 'Honorable',                              icon: '🎖️' },
-      { value: 'general',   label: 'General (Under Honorable Conditions)',   icon: '📄' },
-      { value: 'oth',       label: 'Other Than Honorable (OTH)', desc: 'Limits some programs but not all — upgrade is possible', icon: '⚠️' },
-      { value: 'unknown',   label: "Not sure / don't have my DD-214",        icon: '❓' },
+      { value: 'none',    label: 'No rating — never filed a claim',       desc: 'First time or never completed the process', icon: '—' },
+      { value: 'pending', label: 'Claim pending — waiting on a decision', desc: '', icon: '⏳' },
+      { value: '0_20',    label: '0% – 20%',                              desc: 'Service connection established, lower range', icon: '📊' },
+      { value: '30_60',   label: '30% – 60%',                             desc: 'Mid-range rating', icon: '📊' },
+      { value: '70_90',   label: '70% – 90%',                             desc: 'Higher range — TDIU may apply at 70%+', icon: '📊' },
+      { value: '100',     label: '100% (or Permanent & Total)',            desc: 'Full rating — check dependent and survivor benefits', icon: '🎖️' },
+      { value: 'tdiu',    label: 'TDIU — Individual Unemployability',     desc: 'Paid at 100% rate, service-connected unemployability', icon: '🎖️' },
+      { value: 'denied',  label: 'Was denied — no current rating',        desc: 'Claim was rejected, want to know about refiling', icon: '❌' },
+    ],
+  },
+  {
+    id: 'current_programs', question: "Which VA programs are you currently enrolled in?",
+    sub: "Select all that apply — even if you're not actively using them right now.", type: 'multi',
+    options: [
+      { value: 'va_healthcare',   label: 'VA Healthcare',                   desc: 'Enrolled with a VA doctor or clinic', icon: '🏥' },
+      { value: 'disability_comp', label: 'Disability Compensation',         desc: 'Monthly payment for service-connected conditions', icon: '💵' },
+      { value: 'gi_bill',         label: 'GI Bill (Education)',             desc: 'Chapter 33 Post-9/11 or Chapter 30 Montgomery', icon: '🎓' },
+      { value: 'vre',             label: 'VR&E / Chapter 31',               desc: 'Vocational Rehabilitation & Employment', icon: '💼' },
+      { value: 'va_home_loan',    label: 'VA Home Loan',                    desc: 'Used or currently using the VA loan benefit', icon: '🏠' },
+      { value: 'va_pension',      label: 'VA Pension',                      desc: 'Need-based pension for wartime veterans', icon: '💵' },
+      { value: 'pcafc',           label: 'Caregiver Program (PCAFC)',       desc: 'Program of Comprehensive Assistance for Family Caregivers', icon: '🤝' },
+      { value: 'none',            label: 'None of the above',               desc: 'Not currently enrolled in any VA programs', icon: '—' },
     ],
   },
   {
@@ -497,13 +608,209 @@ const STEPS = [
   },
 ];
 
+// ── Guided intake steps (plain language, fewer steps) ────────────────────────
+
+const GUIDED_STEPS = [
+  // ── GATE: Service status first — no exceptions ───────────────────────────────
+  {
+    id: 'service_status',
+    question: "What is your service status?",
+    sub: "This has to come first — everything Pathfinder tells you depends on this answer. Giving advice before knowing this could send you in the wrong direction.",
+    type: 'single',
+    options: [
+      { value: 'veteran',          label: 'Veteran — I have been discharged',           desc: 'Served and separated from active duty, Reserve, or Guard', icon: '🎖️' },
+      { value: 'active_duty',      label: 'Currently on active duty',                   desc: 'Full-time military service right now', icon: '⭐' },
+      { value: 'reserve_guard',    label: 'Reserve or National Guard — not mobilized',  desc: 'Drilling but not on federal orders', icon: '🛡️' },
+      { value: 'activated',        label: 'Reserve / Guard — currently activated',      desc: 'Mobilized under Title 10 federal orders', icon: '🛡️' },
+      { value: 'surviving_family', label: 'Surviving family member of a veteran',       desc: 'Spouse, child, or dependent of a deceased veteran', icon: '🤝' },
+      { value: 'caregiver',        label: 'Caregiver for a veteran',                    desc: 'Providing care for a veteran with a service-connected disability', icon: '🤝' },
+      { value: 'not_sure',         label: "I'm not sure",                               desc: "Pathfinder will help figure out what applies", icon: '❓' },
+    ],
+  },
+  // ── GATE 2: Discharge — must come before any needs questions ────────────────
+  {
+    id: 'discharge',
+    question: "What type of discharge do you have?",
+    sub: "This isn't a judgment — it's a routing question. Even an OTH or Dishonorable doesn't mean zero options. It means a different set of options, and Pathfinder will be honest about what those are.",
+    type: 'single',
+    skip: (i) => ['surviving_family', 'caregiver', 'active_duty'].includes(i.service_status),
+    options: [
+      { value: 'honorable',    label: 'Honorable',                                     desc: 'Full access to VA benefits', icon: '🎖️' },
+      { value: 'general_uhc',  label: 'General — Under Honorable Conditions',          desc: 'Most VA benefits available', icon: '📄' },
+      { value: 'oth',          label: 'Other Than Honorable (OTH)',                    desc: 'Significantly limits benefits — but not zero. Upgrade path exists.', icon: '⚠️' },
+      { value: 'bcd',          label: 'Bad Conduct Discharge (BCD)',                   desc: 'Very limited federal benefits. State resources still available.', icon: '⚠️' },
+      { value: 'dishonorable', label: 'Dishonorable',                                  desc: 'Most federal benefits unavailable. Emergency mental health and discharge upgrade still possible.', icon: '⚠️' },
+      { value: 'entry_level',  label: 'Entry Level Separation',                        desc: 'Less than 180 days served. Limited eligibility.', icon: '📄' },
+      { value: 'medical',      label: 'Medical Discharge / IDES',                      desc: 'Service-connected medical separation', icon: '🏥' },
+      { value: 'unknown',      label: "Not sure / don't have my DD-214",               desc: "Pathfinder can still help — we'll note it", icon: '❓' },
+    ],
+  },
+  // ── GATE 3–5: Branch, Component, Era — before needs questions ───────────────
+  {
+    id: 'branch',
+    question: "What branch did you serve in?",
+    sub: "Pick all that apply — many veterans served in more than one. Reserves, Guard, and Coast Guard are all here.",
+    type: 'multi',
+    skip: (i) => ['surviving_family', 'caregiver'].includes(i.service_status),
+    options: [
+      { value: 'army',         label: 'Army',                  icon: '⭐' },
+      { value: 'navy',         label: 'Navy',                  icon: '⚓' },
+      { value: 'marines',      label: 'Marine Corps',          icon: '🦅' },
+      { value: 'air_force',    label: 'Air Force',             icon: '✈️' },
+      { value: 'space_force',  label: 'Space Force',           desc: 'Est. 2019', icon: '🚀' },
+      { value: 'coast_guard',  label: 'Coast Guard',           desc: 'Full VA eligibility — often overlooked', icon: '⚓' },
+      { value: 'army_ng',      label: 'Army National Guard',   icon: '🛡️' },
+      { value: 'army_reserve', label: 'Army Reserve',          icon: '🛡️' },
+      { value: 'air_ng',       label: 'Air National Guard',    icon: '🛡️' },
+      { value: 'af_reserve',   label: 'Air Force Reserve',     icon: '🛡️' },
+      { value: 'navy_reserve', label: 'Navy Reserve',          icon: '🛡️' },
+      { value: 'usmc_reserve', label: 'Marine Corps Reserve',  icon: '🛡️' },
+      { value: 'uscg_reserve', label: 'Coast Guard Reserve',   icon: '🛡️' },
+    ],
+  },
+  {
+    id: 'component',
+    question: "Enlisted or officer?",
+    sub: "Pick all that apply — some veterans were enlisted then commissioned, or served as warrant officers.",
+    type: 'multi',
+    skip: (i) => ['surviving_family', 'caregiver'].includes(i.service_status),
+    options: [
+      { value: 'enlisted', label: 'Enlisted',              desc: 'E-1 through E-9',  icon: '⭐' },
+      { value: 'warrant',  label: 'Warrant Officer',       desc: 'WO1 through CW5',  icon: '⭐' },
+      { value: 'officer',  label: 'Commissioned Officer',  desc: 'O-1 through O-10', icon: '⭐' },
+    ],
+  },
+  {
+    id: 'era',
+    question: "When did you serve?",
+    sub: "Pick all that apply — this determines which programs are available to you.",
+    type: 'multi',
+    skip: (i) => ['surviving_family', 'caregiver'].includes(i.service_status),
+    options: [
+      { value: 'wwii',          label: 'World War II',                 desc: '1941–1945', icon: '⭐' },
+      { value: 'korea',         label: 'Korean War',                   desc: '1950–1953', icon: '⭐' },
+      { value: 'vietnam',       label: 'Vietnam Era',                  desc: '1964–1975 — Agent Orange presumptive conditions', icon: '⭐' },
+      { value: 'cold_war',      label: 'Post-Vietnam / Cold War',      desc: '1975–1990 — includes Camp Lejeune period', icon: '⭐' },
+      { value: 'gulf_war',      label: 'Gulf War',                     desc: '1990–2001', icon: '⭐' },
+      { value: 'post_911',      label: 'Post-9/11 (OEF / OIF / OND)', desc: '2001–present — PACT Act burn pit coverage', icon: '⭐' },
+      { value: 'transitioning', label: 'Currently separating',         desc: 'Active duty getting out now', icon: '🔄' },
+    ],
+  },
+  // ── NEEDS: Identity established — now what do they need ──────────────────────
+  {
+    id: 'guided_situation',
+    question: "What do you need help with?",
+    sub: "Select everything that applies — most veterans have more than one thing going on.",
+    type: 'multi',
+    guided: true,
+    options: [
+      { value: 'housing',    label: "I don't have a stable place to stay",              desc: "No housing, about to lose it, or not safe where I am", icon: '🏠' },
+      { value: 'health',     label: "I'm dealing with health problems",                  desc: "Need care, mental health support, or treatment I can't access", icon: '🏥' },
+      { value: 'money',      label: "Money is really tight",                             desc: "I'm not getting what I'm owed or I need more income", icon: '💵' },
+      { value: 'service',    label: "Something from my service is catching up with me",  desc: "Injuries, exposures, conditions — stuff I was never compensated for", icon: '🎖️' },
+      { value: 'transition', label: "I just got out and don't know what I'm entitled to", desc: "New veteran still figuring out what benefits exist", icon: '🔄' },
+      { value: 'legal',      label: "I'm dealing with a legal problem",                  desc: "Discharge issues, court, eviction notice, supervision", icon: '⚖️' },
+      { value: 'crisis',     label: "I need help right now — tonight",                   desc: "Immediate danger, crisis, can't wait", icon: '🚨' },
+    ],
+  },
+  {
+    id: 'va_history',
+    question: "Have you used VA services before?",
+    sub: "This changes the advice significantly — your starting point matters.",
+    type: 'single',
+    options: [
+      { value: 'never',           label: 'No — this is my first time',                      icon: '❓' },
+      { value: 'healthcare_only', label: "I use VA healthcare but haven't filed a disability claim", icon: '🏥' },
+      { value: 'receiving_comp',  label: 'Yes — I receive VA disability compensation',       icon: '✅' },
+      { value: 'claim_active',    label: 'I have a claim or appeal in progress right now',  icon: '⏳' },
+      { value: 'denied',          label: 'I tried before and was denied',                   icon: '❌' },
+      { value: 'contacted_only',  label: 'I contacted them but nothing came of it',         icon: '⏸️' },
+    ],
+  },
+  {
+    id: 'va_facility_issues',
+    question: "Have you had problems with your local VA facility?",
+    sub: "If the VA itself has been a barrier — complaints filed, care denied, or you feel the facility has worked against you — that changes the routing significantly.",
+    type: 'single',
+    skip: (i) => i.va_history === 'never',
+    options: [
+      { value: 'no',           label: 'No issues with the facility',                       desc: 'My experience with the local VA has been okay', icon: '✅' },
+      { value: 'complaints',   label: 'I have filed or want to file complaints',            desc: 'Specific incidents — care denied, mistreated, ignored', icon: '📋' },
+      { value: 'obstruction',  label: 'The facility has actively blocked my access',        desc: 'Denied care, retaliation, or the facility is the problem', icon: '🚫' },
+      { value: 'distrust',     label: "I don't trust my local VA but haven't filed anything", desc: 'Bad experiences but no formal action taken', icon: '⚠️' },
+    ],
+  },
+  {
+    id: 'disability_rating',
+    question: "Do you have a VA disability rating?",
+    sub: "Even a 0% rating matters — it establishes service connection.",
+    type: 'single',
+    options: [
+      { value: 'none',    label: 'No rating — never filed',      icon: '—' },
+      { value: 'pending', label: 'Claim pending',                icon: '⏳' },
+      { value: '0_20',    label: '0% – 20%',                     icon: '📊' },
+      { value: '30_60',   label: '30% – 60%',                    icon: '📊' },
+      { value: '70_90',   label: '70% – 90%',                    icon: '📊' },
+      { value: '100',     label: '100% or Permanent & Total',    icon: '🎖️' },
+      { value: 'tdiu',    label: 'TDIU (paid at 100% rate)',     icon: '🎖️' },
+      { value: 'denied',  label: 'Was denied',                   icon: '❌' },
+    ],
+  },
+  {
+    id: 'location',
+    question: "What state and county are you in?",
+    sub: "Pathfinder uses this to find the right local offices and contacts.",
+    type: 'location',
+  },
+  {
+    id: 'urgency',
+    question: "How urgent is your situation?",
+    sub: null,
+    type: 'single',
+    options: [
+      { value: 'tonight',  label: 'I need help tonight',   desc: 'Immediate — crisis level',               icon: '🚨' },
+      { value: 'days',     label: 'In the next few days',  desc: 'Very soon — deadline or acute need',     icon: '⚡' },
+      { value: 'weeks',    label: 'In the next few weeks', desc: 'Important but not immediate',            icon: '📅' },
+      { value: 'planning', label: 'Planning ahead',        desc: 'No immediate crisis — getting prepared', icon: '🗺️' },
+    ],
+  },
+];
+
+// Map guided_situation selections → intake fields (handles multiple selections)
+function applyGuidedSituation(values) {
+  const map = {
+    housing:    { need: ['housing'] },
+    health:     { need: ['medical'] },
+    money:      { need: ['claims', 'benefits'] },
+    service:    { need: ['claims', 'toxic_exposure'] },
+    transition: { need: ['benefits', 'employment'] },
+    legal:      { need: ['legal'] },
+    crisis:     { need: ['crisis'], urgency: 'tonight' },
+  };
+  const needSet = new Set();
+  const arr = Array.isArray(values) ? values : [values];
+  arr.forEach(v => {
+    const mapped = map[v] || { need: [] };
+    mapped.need.forEach(n => needSet.add(n));
+    if (mapped.urgency) intake.urgency = mapped.urgency;
+  });
+  intake.need = [...needSet];
+}
+
 // ── Vault flow ────────────────────────────────────────────────────────────────
 
 function show(id) { document.getElementById(id).classList.remove('hidden'); }
 function hide(id) { document.getElementById(id).classList.add('hidden'); }
 
-function startIntake() {
+function showModeSelect() {
   hide('vault-section');
+  show('mode-section');
+}
+
+function startIntake(steps) {
+  activeSteps = steps;
+  currentStep = 0;
+  hide('mode-section');
   show('intake-section');
   renderProgress();
   renderStep();
@@ -531,13 +838,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (p1 !== p2) { err.textContent = 'Phrases do not match.'; err.classList.remove('hidden'); return; }
 
     vaultPass = p1;
-    startIntake();
+    showModeSelect();
   });
 
   // Skip vault
   document.getElementById('vault-skip-btn').addEventListener('click', () => {
     vaultPass = null;
-    startIntake();
+    showModeSelect();
   });
 
   // Unlock vault
@@ -554,6 +861,10 @@ document.addEventListener('DOMContentLoaded', () => {
     vaultPass = pass;
     restoreSession(session);
   });
+
+  // Mode select
+  document.getElementById('mode-guided').addEventListener('click', () => startIntake(GUIDED_STEPS));
+  document.getElementById('mode-direct').addEventListener('click', () => startIntake(STEPS));
 
   // Start fresh
   document.getElementById('vault-start-fresh-btn').addEventListener('click', () => {
@@ -619,23 +930,25 @@ function restoreSession(session) {
 // ── Render intake ─────────────────────────────────────────────────────────────
 
 function renderProgress() {
+  const steps = activeSteps || STEPS;
   const bar = document.getElementById('progress-bar');
   bar.innerHTML = '';
-  STEPS.forEach((_, i) => {
+  steps.forEach((_, i) => {
     const dot = document.createElement('div');
     dot.className = 'progress-dot' + (i < currentStep ? ' done' : i === currentStep ? ' active' : '');
     bar.appendChild(dot);
   });
   const lbl = document.createElement('span');
   lbl.className = 'progress-label';
-  lbl.textContent = `${currentStep + 1} / ${STEPS.length}`;
+  lbl.textContent = `${currentStep + 1} / ${steps.length}`;
   bar.appendChild(lbl);
 }
 
 function renderStep() {
-  const step = STEPS[currentStep];
+  const steps = activeSteps || STEPS;
+  const step = steps[currentStep];
   const container = document.getElementById('step-container');
-  const isLast = currentStep === STEPS.length - 1;
+  const isLast = currentStep === steps.length - 1;
 
   let html = `<div class="card">
     <div class="card-question">${step.question}</div>
@@ -699,7 +1012,10 @@ function renderStep() {
   // Wire events
   if (step.type === 'single') {
     container.querySelectorAll('.opt').forEach(btn => {
-      btn.addEventListener('click', () => { intake[step.id] = btn.dataset.value; advance(); });
+      btn.addEventListener('click', () => {
+        intake[step.id] = btn.dataset.value;
+        advance();
+      });
     });
   } else if (step.type === 'multi') {
     container.querySelectorAll('.opt').forEach(btn => {
@@ -727,9 +1043,19 @@ function renderStep() {
 }
 
 async function advance() {
+  const steps = activeSteps || STEPS;
+  const step = steps[currentStep];
+  // Apply guided mapping when leaving a guided multi-select step
+  if (step && step.guided && step.type === 'multi' && intake[step.id]) {
+    applyGuidedSituation(intake[step.id]);
+  }
   await saveSession();
   currentStep++;
-  if (currentStep >= STEPS.length) {
+  // Skip steps that don't apply based on current intake answers
+  while (currentStep < steps.length && steps[currentStep].skip && steps[currentStep].skip(intake)) {
+    currentStep++;
+  }
+  if (currentStep >= steps.length) {
     submitIntake();
   } else {
     renderProgress();
@@ -836,8 +1162,6 @@ async function sendChat() {
 }
 
 // ── Feedback modal ────────────────────────────────────────────────────────────
-
-const WORKER = 'https://pathfinder-worker.justinaiark101.workers.dev';
 
 function openFeedback() {
   document.getElementById('feedback-modal').classList.remove('hidden');
