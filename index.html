@@ -1401,15 +1401,25 @@ function getCoverageNote(intakeData) {
     return 'No location provided. Pathfinder is returning national VA contacts only. For local VSO offices, county-specific housing contacts, and region-specific programs, run again with your state and county.';
   }
 
-  // Check all confirmed coverage regions
+  // Check deep regional coverage (county-verified)
   for (const region of Object.values(_COVERAGE_REGIONS)) {
     if (region.state === state && region.counties.some(c => county.includes(c))) {
-      return null; // Covered
+      return null; // Fully covered — confirmed local data
     }
   }
 
+  // All 50 states have a statewide shard — primary VAMC + state VSO always available.
+  // Show a lighter note when state is known but county isn't deeply covered.
   const loc = county ? `${state} — ${county.charAt(0).toUpperCase() + county.slice(1)} County` : state;
-  return `Pathfinder's confirmed local data covers Western Slope Colorado and Southern Front Range (Colorado Springs / Pueblo area). For your area (${loc}), the phone contacts above are national VA lines that work everywhere — but local VSO offices, housing programs, and county-specific contacts have not been verified for your region. Call your county VSO before acting on any local address or number. If you know a confirmed resource in your area, report it below — it becomes the next branch.`;
+  const deepCoverage = Object.values(_COVERAGE_REGIONS).some(r => r.state === state);
+
+  if (deepCoverage) {
+    // State has regions but this county isn't in one yet
+    return `Pathfinder has confirmed local data for some areas of ${state} but not yet for ${county ? county.charAt(0).toUpperCase() + county.slice(1) + ' County' : 'your county'}. The contacts above include your state VSO and primary VA facility — verified for ${state}. Local office addresses and direct lines may not be confirmed. Report a resource below if you find one.`;
+  }
+
+  // State covered at statewide level only
+  return `Pathfinder has statewide data for ${state} — your state VSO and primary VA Medical Center are included above. Local county-level contacts have not been individually verified yet. Call your county VSO before relying on any specific address or number. If you find a confirmed local resource, report it below.`;
 }
 
 function showErrorResult(msg) {
