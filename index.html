@@ -1380,7 +1380,18 @@ function fmt(text) {
 
 // ── Coverage gap detection ────────────────────────────────────────────────────
 
-const _COVERED_COUNTIES = ['mesa', 'delta', 'montrose', 'garfield', 'gunnison', 'ouray', 'san miguel'];
+const _COVERAGE_REGIONS = {
+  western_slope: {
+    label: 'Western Slope Colorado',
+    counties: ['mesa', 'delta', 'montrose', 'garfield', 'gunnison', 'ouray', 'san miguel', 'rio blanco', 'moffat', 'grand', 'eagle', 'pitkin'],
+    state: 'CO',
+  },
+  front_range: {
+    label: 'Front Range Colorado (El Paso / Pueblo)',
+    counties: ['el paso', 'teller', 'pueblo', 'fremont', 'custer'],
+    state: 'CO',
+  },
+};
 
 function getCoverageNote(intakeData) {
   const state  = (intakeData?.location?.state  || intakeData?.state  || '').toUpperCase().trim();
@@ -1390,13 +1401,15 @@ function getCoverageNote(intakeData) {
     return 'No location provided. Pathfinder is returning national VA contacts only. For local VSO offices, county-specific housing contacts, and region-specific programs, run again with your state and county.';
   }
 
-  // Western Slope CO counties — confirmed local data
-  if (state === 'CO' && _COVERED_COUNTIES.some(c => county.includes(c))) {
-    return null; // Fully covered
+  // Check all confirmed coverage regions
+  for (const region of Object.values(_COVERAGE_REGIONS)) {
+    if (region.state === state && region.counties.some(c => county.includes(c))) {
+      return null; // Covered
+    }
   }
 
   const loc = county ? `${state} — ${county.charAt(0).toUpperCase() + county.slice(1)} County` : state;
-  return `Pathfinder's confirmed local data covers Western Slope Colorado (Mesa, Delta, Montrose, Garfield, Gunnison Counties). For your area (${loc}), the phone contacts above are national VA lines that work everywhere — but local VSO offices, housing programs, and county-specific contacts have not been verified for your region yet. Call your county VSO before relying on any local address or number. If you know a confirmed resource in your area, report it below — it becomes the next branch.`;
+  return `Pathfinder's confirmed local data covers Western Slope Colorado and Southern Front Range (Colorado Springs / Pueblo area). For your area (${loc}), the phone contacts above are national VA lines that work everywhere — but local VSO offices, housing programs, and county-specific contacts have not been verified for your region. Call your county VSO before acting on any local address or number. If you know a confirmed resource in your area, report it below — it becomes the next branch.`;
 }
 
 function showErrorResult(msg) {
