@@ -271,6 +271,19 @@
 
   </div>
 
+  <!-- DIFF — returning veteran review screen -->
+  <div id="diff-section" class="hidden">
+    <div class="card">
+      <div class="card-question">Welcome back</div>
+      <div class="card-sub">Here's what we have on file. Has anything changed since we last spoke?</div>
+      <div id="diff-summary" style="margin:16px 0; display:flex; flex-direction:column; gap:8px;"></div>
+      <div class="nav" style="margin-top:8px; flex-wrap:wrap; gap:10px;">
+        <button class="btn btn-ghost" id="diff-update-btn">Something's changed — update my info</button>
+        <button class="btn btn-primary" id="diff-rerun-btn">Nothing's changed — run it</button>
+      </div>
+    </div>
+  </div>
+
   <!-- INTAKE -->
   <div id="intake-section" class="hidden">
     <div class="progress" id="progress-bar"></div>
@@ -957,6 +970,19 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Start over
+  // Diff screen buttons
+  document.getElementById('diff-rerun-btn').addEventListener('click', () => {
+    // Re-submit existing intake without going through the wizard again
+    hide('diff-section');
+    submitIntake();
+  });
+  document.getElementById('diff-update-btn').addEventListener('click', () => {
+    // Go to mode select — intake is already pre-filled, they'll only change what's different
+    isReturning = true;
+    hide('diff-section');
+    showModeSelect();
+  });
+
   document.getElementById('export-profile-btn').addEventListener('click', exportProfile);
 
   // Export from vault-unlock screen
@@ -1003,22 +1029,136 @@ async function saveSession() {
   await encryptSession(vaultPass, { currentStep, intake, savedResults, chatHistory });
 }
 
+// ── Returning veteran — diff screen ──────────────────────────────────────────
+
+const _DIFF_LABELS = {
+  branch: {
+    marine_corps: 'Marine Corps', army: 'Army', navy: 'Navy',
+    air_force: 'Air Force', coast_guard: 'Coast Guard',
+    army_national_guard: 'Army National Guard',
+    air_national_guard: 'Air National Guard',
+  },
+  discharge: {
+    honorable: 'Honorable',
+    general: 'General Under Honorable Conditions',
+    other_than_honorable: 'Other Than Honorable (OTH)',
+    dishonorable: 'Dishonorable',
+    medical: 'Medical discharge / retirement',
+    entry_level: 'Entry Level Separation',
+    bcd: 'Bad Conduct Discharge',
+    unknown: 'Discharge status unknown',
+  },
+  service_status: {
+    veteran: 'Veteran (separated)', active: 'Active duty',
+    reserve: 'Reserve / Guard', retired: 'Retired military',
+    dependent: 'Dependent / family member', not_sure: 'Not sure',
+  },
+  housing_status: {
+    unhoused: 'Currently unhoused', unstable: 'Housing unstable',
+    at_risk: 'Housing at risk', stable: 'Housing stable',
+  },
+  va_history: {
+    never: 'Never contacted the VA',
+    contacted_only: 'Contacted but never enrolled',
+    healthcare_only: 'Enrolled in VA healthcare only',
+    claim_active: 'Active claim or appeal pending',
+    receiving_comp: 'Receiving VA disability compensation',
+    denied: 'Was denied — never appealed',
+  },
+  disability_rating: {
+    none: 'No rating', pending: 'Rating pending',
+    '0_20': '0–20%', '30_60': '30–60%', '70_90': '70–90%',
+    '100': '100% (or P&T)', tdiu: 'TDIU', denied: 'Denied',
+  },
+};
+
+function _diffLabel(map, val) {
+  if (!val || val === 'unknown') return null;
+  return map[val] || val;
+}
+
+function buildIntakeSummary(data) {
+  const rows = [];
+
+  const branch = _diffLabel(_DIFF_LABELS.branch, data.branch);
+  if (branch) rows.push(['Branch', branch]);
+
+  const discharge = _diffLabel(_DIFF_LABELS.discharge, data.discharge);
+  if (discharge) rows.push(['Discharge', discharge]);
+
+  const status = _diffLabel(_DIFF_LABELS.service_status, data.service_status);
+  if (status) rows.push(['Status', status]);
+
+  const hs = _diffLabel(_DIFF_LABELS.housing_status, data.housing_status);
+  if (hs) {
+    const chronic = data.is_chronically_homeless ? ' — 6+ months (chronic)' : '';
+    rows.push(['Housing', hs + chronic]);
+  }
+
+  const vaHist = _diffLabel(_DIFF_LABELS.va_history, data.va_history);
+  if (vaHist) rows.push(['VA history', vaHist]);
+
+  const rating = _diffLabel(_DIFF_LABELS.disability_rating, data.disability_rating);
+  if (rating) rows.push(['Disability rating', rating]);
+
+  if (data.active_criminal_case) {
+    let cc = 'Active criminal case';
+    if (data.criminal_case_type) cc += ` (${data.criminal_case_type.toUpperCase()})`;
+    if (data.claiming_self_defense) cc += ' — self-defense claim';
+    rows.push(['Legal', cc]);
+  }
+
+  if (data.va_facility_obstruction || data.va_facility_issues) {
+    rows.push(['VA facility', 'Issues / complaints on file']);
+  }
+
+  const loc = data.state || (data.location && data.location.state);
+  const county = data.county || (data.location && data.location.county);
+  if (loc) rows.push(['Location', county ? `${loc} — ${county} County` : loc]);
+
+  if (Array.isArray(data.need) && data.need.length) {
+    rows.push(['Needs flagged', data.need.join(', ')]);
+  }
+
+  return rows;
+}
+
+function showDiffScreen(session) {
+  const rows = buildIntakeSummary(session.intake || {});
+  const el   = document.getElementById('diff-summary');
+
+  if (!rows.length) {
+    // Nothing meaningful to show — skip diff and go straight to mode select
+    showModeSelect();
+    return;
+  }
+
+  el.innerHTML = rows.map(([label, val]) =>
+    `<div style="display:flex; gap:10px; font-size:14px; line-height:1.5;">
+       <span style="min-width:130px; color:var(--muted); flex-shrink:0;">${label}</span>
+       <span style="color:var(--text);">${val}</span>
+     </div>`
+  ).join('');
+
+  hide('vault-section');
+  show('diff-section');
+}
+
+let isReturning = false;
+
 function restoreSession(session) {
   currentStep  = session.currentStep  || 0;
   intake       = session.intake       || {};
   savedResults = session.savedResults || null;
   chatHistory  = session.chatHistory  || [];
 
-  hide('vault-section');
-
   if (savedResults) {
-    showResults(savedResults, true);
-    // Restore chat
-    chatHistory.forEach(m => {
-      if (m.role === 'user') addMsg('user', m.content);
-      else if (m.role === 'assistant') addMsg('pf', m.content);
-    });
+    // Completed intake previously — show diff screen instead of jumping straight to results
+    isReturning = true;
+    showDiffScreen(session);
   } else {
+    // Mid-intake resume — continue where they left off, no diff needed
+    hide('vault-section');
     show('intake-section');
     renderProgress();
     renderStep();
@@ -1165,13 +1305,14 @@ async function advance() {
 
 async function submitIntake() {
   hide('intake-section');
+  hide('diff-section');
   show('loading-section');
 
   try {
     const res  = await fetch(`${WORKER}/process`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ intake }),
+      body: JSON.stringify({ intake, is_returning: isReturning }),
     });
     const data = await res.json();
     hide('loading-section');
