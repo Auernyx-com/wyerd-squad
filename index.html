@@ -238,6 +238,12 @@
           <button class="link-btn" id="vault-skip-btn">Skip — don't save my session</button>
           <button class="btn btn-primary" id="vault-create-btn">Save my progress</button>
         </div>
+        <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-size:13px; color:var(--muted);">
+          Returning from a different device?
+          <button class="link-btn" id="vault-load-file-btn" style="font-size:13px;">Load profile from file</button>
+          <input type="file" id="vault-file-input" accept=".json" style="display:none;" />
+          <div id="vault-import-error" class="inline-error hidden" style="margin-top:6px;"></div>
+        </div>
       </div>
     </div>
 
@@ -246,6 +252,9 @@
       <div class="card">
         <div class="card-question">Welcome back</div>
         <div class="card-sub">Enter your personal phrase to continue where you left off.</div>
+        <div id="vault-import-success" class="hidden" style="margin-bottom:10px; padding:8px 12px; background:var(--navy-lit); border:1px solid var(--border); border-radius:6px; font-size:13px; color:var(--text);">
+          Profile loaded from file. Enter your phrase to unlock it.
+        </div>
         <div class="input-stack">
           <input type="password" id="vault-unlock-pass" placeholder="Your personal phrase" autocomplete="current-password" />
           <div id="vault-unlock-error" class="inline-error hidden"></div>
@@ -425,6 +434,38 @@ function hasStoredSession() {
 function clearSession() {
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(SALT_KEY);
+}
+
+async function importProfile(file) {
+  const errEl = document.getElementById('vault-import-error');
+  const showErr = (msg) => { errEl.textContent = msg; errEl.classList.remove('hidden'); };
+  errEl.classList.add('hidden');
+
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+
+    if (data.schema !== 'squad-bat.veteran-profile.v1') {
+      showErr('This doesn\'t look like a Pathfinder profile — check you selected the right file.');
+      return;
+    }
+    if (!data.salt || !data.session || !data.session.iv || !data.session.ct) {
+      showErr('Profile file is incomplete or damaged. Try exporting a fresh copy from your other device.');
+      return;
+    }
+
+    // Load encrypted blob into localStorage — same structure encryptSession() writes
+    localStorage.setItem(SALT_KEY,    JSON.stringify(data.salt));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data.session));
+
+    // Switch to vault-unlock — they now have a stored session to unlock
+    hide('vault-create');
+    document.getElementById('vault-import-success').classList.remove('hidden');
+    show('vault-unlock');
+
+  } catch {
+    showErr('Could not read the file. Make sure it is a Pathfinder profile (.json).');
+  }
 }
 
 async function exportProfile() {
@@ -918,8 +959,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Start over
   document.getElementById('export-profile-btn').addEventListener('click', exportProfile);
 
-  // Export from vault-unlock screen — no passphrase needed, just downloads the encrypted blob
+  // Export from vault-unlock screen
   document.getElementById('vault-export-btn').addEventListener('click', exportProfile);
+
+  // Import — "Load profile from file" link triggers hidden file input
+  document.getElementById('vault-load-file-btn').addEventListener('click', () => {
+    document.getElementById('vault-file-input').value = '';   // reset so same file can be re-selected
+    document.getElementById('vault-file-input').click();
+  });
+  document.getElementById('vault-file-input').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) importProfile(file);
+  });
 
   document.getElementById('start-over-btn').addEventListener('click', () => {
     if (!confirm('Start over? This will clear your current results and intake.')) return;
