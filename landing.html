@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Pathfinder — Veteran navigation assistant. Find your path through VA benefits, housing, healthcare, legal aid, and more." />
+  <title>Pathfinder — Veteran Navigation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:      #0f1f33;
+      --navy-mid:  #162840;
+      --navy-lit:  #1e3554;
+      --border:    #2a4060;
+      --teal:      #3a9eca;
+      --teal-dim:  #1e5a7a;
+      --teal-lit:  #6abde8;
+      --text:      #eef2f7;
+      --text-dim:  #8aacc8;
+      --text-muted:#4a6a88;
+      --warn:      #e8a840;
+      --pass:      #3dba7a;
+      --sans:      'Inter', system-ui, sans-serif;
+      --mono:      'IBM Plex Mono', monospace;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--navy);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .shell {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 20px 80px;
+    }
+
+    /* ── Header ── */
+    header {
+      padding: 32px 0 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 48px;
+    }
+
+    .wordmark {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .beta-badge {
+      display: inline-block;
+      background: var(--warn);
+      color: #1a1000;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+
+    h1 {
+      font-size: 34px;
+      font-weight: 600;
+      color: var(--teal-lit);
+      letter-spacing: -0.025em;
+      margin-bottom: 10px;
+      line-height: 1.2;
+    }
+
+    .tagline {
+      font-size: 17px;
+      color: var(--text-dim);
+      line-height: 1.5;
+      max-width: 520px;
+    }
+
+    /* ── Sections ── */
+    .section {
+      margin-bottom: 44px;
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 12px;
+      line-height: 1.35;
+    }
+
+    p {
+      color: var(--text-dim);
+      font-size: 15px;
+      line-height: 1.7;
+      margin-bottom: 12px;
+    }
+
+    p:last-child { margin-bottom: 0; }
+
+    /* ── Track list ── */
+    .track-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .track-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    .track-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--teal);
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
+
+    .track-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .track-desc {
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+
+    /* ── Beta notice ── */
+    .notice {
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--warn);
+      border-radius: 6px;
+      padding: 18px 20px;
+    }
+
+    .notice p {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .notice p:last-child { margin-bottom: 0; }
+
+    .notice strong { color: var(--warn); font-weight: 600; }
+
+    /* ── CTA ── */
+    .cta-block {
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 32px 28px;
+      text-align: center;
+    }
+
+    .cta-block h2 {
+      margin-bottom: 10px;
+    }
+
+    .cta-block p {
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      background: var(--teal);
+      color: #fff;
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 600;
+      padding: 14px 32px;
+      border-radius: 6px;
+      text-decoration: none;
+      letter-spacing: 0.01em;
+      transition: background 0.15s;
+    }
+
+    .btn-primary:hover {
+      background: var(--teal-lit);
+    }
+
+    .cta-note {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 16px;
+    }
+
+    /* ── Privacy / data note ── */
+    .data-note {
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 18px;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .data-note strong { color: var(--text-dim); font-weight: 600; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      margin-top: 60px;
+      padding-top: 24px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      h1 { font-size: 26px; }
+      .tagline { font-size: 15px; }
+      .cta-block { padding: 24px 18px; }
+      .btn-primary { width: 100%; text-align: center; display: block; }
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <header>
+    <div class="wordmark">SQUAD BAT &mdash; Veteran Navigation <span class="beta-badge">BETA</span></div>
+    <h1>Pathfinder</h1>
+    <p class="tagline">A navigator for veterans. Tell us your situation. We find the right path through VA programs, housing, healthcare, legal aid, and more.</p>
+  </header>
+
+  <!-- What it is -->
+  <div class="section">
+    <div class="section-label">What this is</div>
+    <p>
+      The VA system is complicated on purpose. Eligibility rules change, programs overlap, and the path from "I need help" to "here is the resource" is rarely clear. Pathfinder is a guided intake system that takes your situation — branch, discharge status, housing, disability, what you're dealing with — and routes you to the specific programs, offices, and contacts that apply.
+    </p>
+    <p>
+      It doesn't give legal or medical advice. It doesn't store your data on any server. It tells you where to go and who to call.
+    </p>
+  </div>
+
+  <!-- What it covers -->
+  <div class="section">
+    <div class="section-label">Coverage areas</div>
+    <div class="track-list">
+      <div class="track-item">
+        <div class="track-dot"></div>
+        <div>
+          <span class="track-name">VA Benefits &amp; Claims</span>
+          <span class="track-desc">Disability ratings, PACT Act burn pit presumptives, previously denied claims, appeals, TDIU, SMC, Aid &amp; Attendance.</span>
+        </div>
+      </div>
+      <div class="track-item">
+        <div class="track-dot"></div>
+        <div>
+          <span class="track-name">Housing</span>
+          <span class="track-desc">HUD-VASH, SSVF rapid re-housing, DV housing, criminal record barriers, VA home loan, eviction defense, adaptive housing grants.</span>
+        </div>
+      </div>
+      <div class="track-item">
+        <div class="track-dot"></div>
+        <div>
+          <span class="track-name">Healthcare &amp; Mental Health</span>
+          <span class="track-desc">VA enrollment, VAMC assignment, Vet Center referral, MST care, caregiver support, Crisis Line routing.</span>
+        </div>
+      </div>
+      <div class="track-item">
+        <div class="track-dot"></div>
+        <div>
+          <span class="track-name">Legal</span>
+          <span class="track-desc">Discharge upgrade, VA appeals, MST legal support, civilian legal aid, records correction, predatory lending.</span>
+        </div>
+      </div>
+      <div class="track-item">
+        <div class="track-dot"></div>
+        <div>
+          <span class="track-name">Business &amp; Employment</span>
+          <span class="track-desc">SDVOSB/VOSB certification, federal contracting, SBA programs, Voc Rehab Ch. 31, employment transition.</span>
+        </div>
+      </div>
+      <div class="track-item">
+        <div class="track-dot"></div>
+        <div>
+          <span class="track-name">Transportation, Women Veterans, Toxic Exposure</span>
+          <span class="track-desc">BTSSS travel pay, DAV transport, rural transport, Agent Orange, Camp Lejeune, Gulf War Syndrome, PFAS — plus women-specific care tracks.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Beta notice -->
+  <div class="section">
+    <div class="section-label">Beta status</div>
+    <div class="notice">
+      <p><strong>Limited access, Western Slope Colorado pilot.</strong> Pathfinder is under active development. We are testing with a small group of veterans across different branches, discharge statuses, and situations before expanding.</p>
+      <p>The system is honest about what it doesn't know. When local data for your area isn't confirmed, it says so. When a case is unusual, it flags it and tells you to verify with a VSO before acting. It will not route you toward a program you don't qualify for and call it complete.</p>
+      <p>National expansion is the goal. This is the pilot that gets it right first.</p>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="section">
+    <div class="cta-block">
+      <h2>Request access</h2>
+      <p>Send a brief email with your branch and state. Access is granted manually during the beta period. Response within 48 hours.</p>
+      <a class="btn-primary" href="mailto:admin@wyerd.org?subject=Pathfinder%20Beta%20Access%20Request&body=Branch%3A%20%0AState%3A%20%0ADischarge%20status%20(if%20comfortable%20sharing)%3A%20%0AWhat%20are%20you%20hoping%20to%20get%20help%20with%3F%0A">Request Access</a>
+      <div class="cta-note">Opens your default email client. No account required.</div>
+    </div>
+  </div>
+
+  <!-- Data note -->
+  <div class="section">
+    <div class="data-note">
+      <strong>Your data stays with you.</strong> Pathfinder does not store veteran data on any server. Intake answers are processed in real time and discarded. If you save a session profile, it is encrypted and stored on your device only — you hold the key, we don't.
+    </div>
+  </div>
+
+  <footer>
+    SQUAD BAT &mdash; Veteran Navigation &mdash; squad.wyerd.org &mdash; <a href="mailto:admin@wyerd.org" style="color: var(--text-muted); text-decoration: none;">admin@wyerd.org</a>
+  </footer>
+
+</div>
+</body>
+</html>
