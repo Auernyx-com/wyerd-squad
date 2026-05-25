@@ -168,6 +168,27 @@
     .feedback-success h3 { font-size: 17px; font-weight: 600; color: var(--pass); margin-bottom: 8px; }
     .feedback-success p { font-size: 13px; color: var(--text-dim); }
 
+    /* Coverage gap note */
+    .coverage-gap { background: var(--navy-mid); border: 1px solid var(--border); border-left: 3px solid var(--warn); border-radius: 6px; padding: 14px 18px; margin-bottom: 16px; font-size: 13px; color: var(--text-dim); line-height: 1.65; }
+    .coverage-gap strong { color: var(--warn); display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 5px; font-family: var(--mono); }
+    .coverage-gap .cg-report { color: var(--teal); background: none; border: none; cursor: pointer; font-size: 13px; padding: 0; font-family: var(--sans); text-decoration: underline; margin-top: 8px; display: inline-block; }
+    .coverage-gap .cg-report:hover { color: var(--teal-lit); }
+
+    /* Inline feedback strip */
+    .feedback-strip { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 8px; padding: 20px 22px; margin-top: 24px; }
+    .feedback-strip-label { font-size: 10px; font-family: var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; }
+    .feedback-vote-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .vote-label { font-size: 13px; color: var(--text-dim); margin-right: 2px; flex-shrink: 0; }
+    .btn-vote { padding: 6px 16px; border: 1px solid var(--border); border-radius: 5px; background: var(--navy-lit); color: var(--text-dim); font-family: var(--sans); font-size: 13px; cursor: pointer; transition: all 0.15s; }
+    .btn-vote:hover { border-color: var(--teal-dim); color: var(--text); }
+    .btn-vote.selected { background: var(--teal-dim); border-color: var(--teal); color: var(--text); }
+    .feedback-strip textarea { width: 100%; background: var(--navy); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: var(--sans); font-size: 13px; line-height: 1.5; padding: 10px 12px; resize: none; min-height: 58px; margin-bottom: 12px; outline: none; transition: border-color 0.15s; }
+    .feedback-strip textarea:focus { border-color: var(--teal-dim); }
+    .feedback-strip textarea::placeholder { color: var(--text-muted); }
+    .strip-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .strip-note { font-size: 11px; color: var(--text-muted); margin-top: 10px; line-height: 1.5; }
+    .strip-success { padding: 10px 0 4px; font-size: 14px; color: var(--pass); }
+
     .hidden { display: none !important; }
 
     @media (max-width: 520px) {
@@ -183,9 +204,7 @@
 
   <header>
     <div class="brand">
-      <a href="https://wyerd.org">Wyerd</a>
-      <span>/</span>
-      <span>SQUAD BAT</span>
+      <span>SQUAD BAT — Veteran Navigation</span>
       <span class="beta">BETA</span>
     </div>
     <h1>Pathfinder</h1>
@@ -305,14 +324,42 @@
       <h2>Your Path</h2>
       <p>Based on your intake. Use this in any meeting, call, or appointment.</p>
     </div>
+
+    <!-- Coverage gap notice — shown when location is outside confirmed coverage -->
+    <div id="coverage-gap-block" class="coverage-gap hidden">
+      <strong>Coverage Note</strong>
+      <span id="coverage-gap-text"></span>
+      <button class="cg-report" id="coverage-report-btn">Report a local resource for this area →</button>
+    </div>
+
     <div id="results-content"></div>
     <div class="result-actions">
       <button class="btn btn-ghost" onclick="window.print()">Print / Save as PDF</button>
       <button class="btn btn-ghost" id="export-profile-btn">Save profile to file</button>
       <button class="link-btn" id="start-over-btn">Start over for a different situation</button>
-      <button class="link-btn" id="open-feedback-btn">Help Pathfinder help others →</button>
     </div>
     <div id="export-profile-msg" class="inline-error hidden" style="margin-top:8px;"></div>
+
+    <!-- Inline feedback strip -->
+    <div class="feedback-strip">
+      <div class="feedback-strip-label">Help Pathfinder Help Others</div>
+      <div id="strip-form">
+        <div class="feedback-vote-row">
+          <span class="vote-label">Was this useful?</span>
+          <button class="btn-vote" data-vote="yes">Yes</button>
+          <button class="btn-vote" data-vote="partially">Partially</button>
+          <button class="btn-vote" data-vote="no">No</button>
+        </div>
+        <textarea id="strip-missing" placeholder="What did we miss? Wrong number, missing program, gap in your area — anything helps." rows="2"></textarea>
+        <div class="strip-actions">
+          <button class="btn btn-primary" id="strip-submit">Send</button>
+          <button class="link-btn" id="open-feedback-btn" style="font-size:13px;">File a detailed report →</button>
+        </div>
+        <div id="strip-error" class="inline-error" style="display:none;margin-top:8px;"></div>
+        <div class="strip-note">Anonymous. Only what you type here is sent. Location and need area added from your intake if provided.</div>
+      </div>
+      <div id="strip-success" class="strip-success hidden">Received. Thank you — this goes directly into building the next branch.</div>
+    </div>
 
     <hr />
 
@@ -328,8 +375,8 @@
   </div>
 
   <footer>
-    <span>Pathfinder v1 Beta — <a href="https://wyerd.org">Wyerd / SQUAD BAT</a></span>
-    <button class="link-btn" id="open-feedback-footer-btn" style="background:none;border:none;padding:0;font-size:12px;cursor:pointer;">Help Pathfinder help others</button>
+    <span>Pathfinder — SQUAD BAT Veteran Navigation — Beta</span>
+    <a href="/landing.html" style="color:var(--text-muted);text-decoration:none;">About this tool</a>
   </footer>
 
   <!-- Feedback Modal -->
@@ -527,6 +574,7 @@ let chatBusy     = false;
 let vaultPass    = null;
 let savedResults = null;
 let activeSteps  = null; // set at mode select
+let stripVote    = null; // inline feedback strip vote
 
 // ── Intake steps ──────────────────────────────────────────────────────────────
 
@@ -1330,6 +1378,27 @@ function fmt(text) {
   return text.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
 }
 
+// ── Coverage gap detection ────────────────────────────────────────────────────
+
+const _COVERED_COUNTIES = ['mesa', 'delta', 'montrose', 'garfield', 'gunnison', 'ouray', 'san miguel'];
+
+function getCoverageNote(intakeData) {
+  const state  = (intakeData?.location?.state  || intakeData?.state  || '').toUpperCase().trim();
+  const county = (intakeData?.location?.county || intakeData?.county || '').toLowerCase().trim();
+
+  if (!state) {
+    return 'No location provided. Pathfinder is returning national VA contacts only. For local VSO offices, county-specific housing contacts, and region-specific programs, run again with your state and county.';
+  }
+
+  // Western Slope CO counties — confirmed local data
+  if (state === 'CO' && _COVERED_COUNTIES.some(c => county.includes(c))) {
+    return null; // Fully covered
+  }
+
+  const loc = county ? `${state} — ${county.charAt(0).toUpperCase() + county.slice(1)} County` : state;
+  return `Pathfinder's confirmed local data covers Western Slope Colorado (Mesa, Delta, Montrose, Garfield, Gunnison Counties). For your area (${loc}), the phone contacts above are national VA lines that work everywhere — but local VSO offices, housing programs, and county-specific contacts have not been verified for your region yet. Call your county VSO before relying on any local address or number. If you know a confirmed resource in your area, report it below — it becomes the next branch.`;
+}
+
 function showErrorResult(msg) {
   show('results-section');
   document.getElementById('results-content').innerHTML = `
@@ -1348,6 +1417,26 @@ function showResults(text, isRestore = false) {
     html += `<div class="result-block${isPrimary ? ' primary' : ''}"><div class="result-content">${fmt(s.trim())}</div></div>`;
   });
   document.getElementById('results-content').innerHTML = html || `<div class="result-block primary"><div class="result-content">${fmt(text)}</div></div>`;
+
+  // Coverage gap detection
+  const gapNote = getCoverageNote(intake);
+  const gapBlock = document.getElementById('coverage-gap-block');
+  const gapText  = document.getElementById('coverage-gap-text');
+  if (gapNote) {
+    gapText.textContent = gapNote;
+    gapBlock.classList.remove('hidden');
+  } else {
+    gapBlock.classList.add('hidden');
+  }
+
+  // Reset feedback strip for fresh results view
+  stripVote = null;
+  document.querySelectorAll('.btn-vote').forEach(b => b.classList.remove('selected'));
+  const stripMissing = document.getElementById('strip-missing');
+  if (stripMissing) stripMissing.value = '';
+  document.getElementById('strip-form')?.classList.remove('hidden');
+  document.getElementById('strip-success')?.classList.add('hidden');
+  document.getElementById('strip-error') && (document.getElementById('strip-error').style.display = 'none');
 }
 
 // ── Chat ──────────────────────────────────────────────────────────────────────
@@ -1416,7 +1505,72 @@ function closeFeedback() {
 }
 
 document.getElementById('open-feedback-btn')?.addEventListener('click', openFeedback);
-document.getElementById('open-feedback-footer-btn')?.addEventListener('click', openFeedback);
+
+// Coverage gap → open feedback modal pre-focused on what's missing
+document.getElementById('coverage-report-btn')?.addEventListener('click', () => {
+  openFeedback();
+  // Scroll to the "what did we miss" field in the modal
+  setTimeout(() => document.getElementById('fb-missing')?.focus(), 120);
+});
+
+// Inline feedback strip — vote buttons
+document.querySelectorAll('.btn-vote').forEach(btn => {
+  btn.addEventListener('click', () => {
+    stripVote = btn.dataset.vote;
+    document.querySelectorAll('.btn-vote').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  });
+});
+
+// Inline feedback strip — submit
+document.getElementById('strip-submit')?.addEventListener('click', async () => {
+  const what_was_missing = document.getElementById('strip-missing')?.value.trim() || null;
+  if (!stripVote && !what_was_missing) {
+    const err = document.getElementById('strip-error');
+    err.textContent = 'Select a rating or describe what was missing before sending.';
+    err.style.display = 'block';
+    return;
+  }
+  document.getElementById('strip-error').style.display = 'none';
+
+  const submitBtn = document.getElementById('strip-submit');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Sending…';
+
+  const payload = {
+    contact_worked: stripVote || null,
+    what_was_missing,
+    what_you_found: null,
+    experience: null,
+    complaint: null,
+    state:     intake?.location?.state  || null,
+    county:    intake?.location?.county || null,
+    need_area: intake?.need ? (Array.isArray(intake.need) ? intake.need.join(', ') : intake.need) : null,
+    source: 'strip',
+  };
+
+  try {
+    const res = await fetch(`${WORKER}/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (res.ok && data.ok) {
+      document.getElementById('strip-form')?.classList.add('hidden');
+      document.getElementById('strip-success')?.classList.remove('hidden');
+    } else {
+      throw new Error(data.error || 'Unknown error');
+    }
+  } catch {
+    const err = document.getElementById('strip-error');
+    err.textContent = 'Could not send — try the detailed report link, or email admin@wyerd.org.';
+    err.style.display = 'block';
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Send';
+  }
+});
 document.getElementById('feedback-close').addEventListener('click', closeFeedback);
 document.getElementById('feedback-cancel').addEventListener('click', closeFeedback);
 document.getElementById('feedback-done').addEventListener('click', closeFeedback);
