@@ -254,6 +254,9 @@
           <button class="link-btn" id="vault-start-fresh-btn">Start fresh instead</button>
           <button class="btn btn-primary" id="vault-unlock-btn">Continue</button>
         </div>
+        <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-size:13px; color:var(--muted);">
+          Using a different device? <button class="link-btn" id="vault-export-btn" style="font-size:13px;">Save profile to file</button> to take it with you.
+        </div>
       </div>
     </div>
 
@@ -283,9 +286,11 @@
     <div id="results-content"></div>
     <div class="result-actions">
       <button class="btn btn-ghost" onclick="window.print()">Print / Save as PDF</button>
+      <button class="btn btn-ghost" id="export-profile-btn">Save profile to file</button>
       <button class="link-btn" id="start-over-btn">Start over for a different situation</button>
       <button class="link-btn" id="open-feedback-btn">Help Pathfinder help others →</button>
     </div>
+    <div id="export-profile-msg" class="inline-error hidden" style="margin-top:8px;"></div>
 
     <hr />
 
@@ -420,6 +425,43 @@ function hasStoredSession() {
 function clearSession() {
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(SALT_KEY);
+}
+
+async function exportProfile() {
+  // Make sure the latest session state is saved before exporting
+  await saveSession();
+
+  const stored  = localStorage.getItem(STORAGE_KEY);
+  const saltRaw = localStorage.getItem(SALT_KEY);
+
+  if (!stored || !saltRaw) {
+    // No vault set — guide them to create one first
+    const el = document.getElementById('export-profile-msg');
+    if (el) {
+      el.textContent = 'Set a personal phrase first — scroll up and create your vault, then come back to save your file.';
+      el.classList.remove('hidden');
+      setTimeout(() => el.classList.add('hidden'), 6000);
+    }
+    return;
+  }
+
+  const profile = {
+    schema:   'squad-bat.veteran-profile.v1',
+    exported: new Date().toISOString().split('T')[0],
+    note:     'This file is encrypted. Your personal phrase is required to open it. Keep your phrase and this file separate.',
+    salt:     JSON.parse(saltRaw),
+    session:  JSON.parse(stored),   // contains { iv, ct } — useless without the passphrase
+  };
+
+  const blob = new Blob([JSON.stringify(profile, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'pathfinder-profile.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -874,6 +916,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Start over
+  document.getElementById('export-profile-btn').addEventListener('click', exportProfile);
+
+  // Export from vault-unlock screen — no passphrase needed, just downloads the encrypted blob
+  document.getElementById('vault-export-btn').addEventListener('click', exportProfile);
+
   document.getElementById('start-over-btn').addEventListener('click', () => {
     if (!confirm('Start over? This will clear your current results and intake.')) return;
     clearSession();
