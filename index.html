@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Pathfinder — Veteran navigation assistant. Find your path through housing, benefits, and VA programs." />
-  <title>Pathfinder — SQUAD BAT</title>
+  <meta name="description" content="Pathfinder — Veteran navigation assistant. Find your path through VA benefits, housing, healthcare, legal aid, and more." />
+  <title>Pathfinder — Veteran Navigation</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
@@ -22,180 +22,233 @@
       --text-dim:  #8aacc8;
       --text-muted:#4a6a88;
       --warn:      #e8a840;
-      --fail:      #e05050;
       --pass:      #3dba7a;
       --sans:      'Inter', system-ui, sans-serif;
       --mono:      'IBM Plex Mono', monospace;
     }
 
-    html, body { min-height: 100%; background: var(--navy); color: var(--text); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+    html, body {
+      min-height: 100%;
+      background: var(--navy);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.6;
+    }
 
-    .shell { max-width: 680px; margin: 0 auto; padding: 0 16px 60px; }
+    .shell {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 20px 80px;
+    }
 
-    /* Header */
-    header { padding: 24px 0 20px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
-    .brand { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
-    .brand a { color: var(--text-muted); text-decoration: none; }
-    .brand a:hover { color: var(--teal-lit); }
-    .brand span { margin: 0 6px; }
-    .brand .beta { background: var(--warn); color: #1a1000; padding: 2px 7px; border-radius: 3px; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; margin-left: 8px; }
-    h1 { font-size: 26px; font-weight: 600; color: var(--teal-lit); letter-spacing: -0.02em; margin-bottom: 4px; }
-    .tagline { font-size: 14px; color: var(--text-dim); }
+    /* ── Header ── */
+    header {
+      padding: 32px 0 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 48px;
+    }
 
-    /* Privacy bar */
-    .privacy { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; font-size: 12px; color: var(--text-muted); margin-bottom: 28px; }
-    .privacy strong { color: var(--warn); }
+    .wordmark {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
 
-    /* Card */
-    .card { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 8px; padding: 28px 24px; margin-bottom: 20px; }
-    .card-question { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 6px; line-height: 1.4; }
-    .card-sub { font-size: 13px; color: var(--text-dim); margin-bottom: 20px; }
+    .beta-badge {
+      display: inline-block;
+      background: var(--warn);
+      color: #1a1000;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
 
-    /* Progress */
-    .progress { display: flex; align-items: center; gap: 6px; margin-bottom: 24px; }
-    .progress-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--navy-lit); border: 1px solid var(--border); transition: all 0.2s; }
-    .progress-dot.done { background: var(--pass); border-color: var(--pass); }
-    .progress-dot.active { background: var(--teal); border-color: var(--teal); }
-    .progress-label { font-size: 12px; color: var(--text-muted); margin-left: 6px; font-family: var(--mono); }
+    h1 {
+      font-size: 34px;
+      font-weight: 600;
+      color: var(--teal-lit);
+      letter-spacing: -0.025em;
+      margin-bottom: 10px;
+      line-height: 1.2;
+    }
 
-    /* Options */
-    .options { display: flex; flex-direction: column; gap: 10px; }
-    .options.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .opt { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; background: var(--navy-lit); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; text-align: left; color: var(--text); font-family: var(--sans); font-size: 14px; font-weight: 500; line-height: 1.4; transition: border-color 0.15s, background 0.15s; width: 100%; }
-    .opt:hover { border-color: var(--teal-dim); background: #1a3050; }
-    .opt.selected { border-color: var(--teal); background: #1a3a5a; }
-    .opt-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
-    .opt-body { flex: 1; }
-    .opt-label { display: block; }
-    .opt-desc { display: block; font-size: 12px; color: var(--text-dim); font-weight: 400; margin-top: 2px; }
+    .tagline {
+      font-size: 17px;
+      color: var(--text-dim);
+      line-height: 1.5;
+      max-width: 520px;
+    }
 
-    /* Inputs */
-    input[type="text"], input[type="password"] { background: var(--navy-lit); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: var(--sans); font-size: 15px; padding: 14px 16px; outline: none; transition: border-color 0.15s; width: 100%; }
-    input:focus { border-color: var(--teal-dim); }
-    input::placeholder { color: var(--text-muted); }
-    .input-stack { display: flex; flex-direction: column; gap: 10px; }
-    .input-note { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
-    .input-note strong { color: var(--warn); }
+    /* ── Sections ── */
+    .section {
+      margin-bottom: 44px;
+    }
 
-    /* Buttons */
-    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; gap: 12px; }
-    .btn { padding: 12px 24px; border-radius: 6px; border: none; font-family: var(--sans); font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s, background 0.15s; }
-    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
-    .btn-primary { background: var(--teal); color: #0a1a28; }
-    .btn-primary:hover:not(:disabled) { background: var(--teal-lit); }
-    .btn-ghost { background: transparent; color: var(--text-dim); border: 1px solid var(--border); }
-    .btn-ghost:hover:not(:disabled) { color: var(--text); border-color: var(--text-dim); }
-    .btn-warn { background: var(--fail); color: #fff; }
-    .btn-warn:hover:not(:disabled) { opacity: 0.85; }
-    .link-btn { font-size: 12px; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 0; font-family: var(--sans); text-decoration: underline; }
-    .link-btn:hover { color: var(--text-dim); }
+    .section-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
 
-    /* Loading */
-    .loading { text-align: center; padding: 60px 0; }
-    .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--teal); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loading p { color: var(--text-dim); font-size: 14px; }
-    .loading .loading-sub { color: var(--text-muted); font-size: 12px; margin-top: 6px; }
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 12px;
+      line-height: 1.35;
+    }
 
-    /* Results */
-    .results-header { margin-bottom: 20px; }
-    .results-header h2 { font-size: 20px; font-weight: 600; color: var(--pass); margin-bottom: 4px; }
-    .results-header p { font-size: 13px; color: var(--text-dim); }
-    .result-block { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 8px; padding: 20px 22px; margin-bottom: 12px; }
-    .result-block.primary { border-color: var(--teal-dim); background: #122030; }
-    .result-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); font-family: var(--mono); margin-bottom: 8px; }
-    .result-content { font-size: 14px; color: var(--text); line-height: 1.75; white-space: pre-wrap; }
-    .result-content strong { color: var(--teal-lit); display: block; margin-top: 12px; margin-bottom: 2px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; font-family: var(--mono); }
-    .result-content strong:first-child { margin-top: 0; }
+    p {
+      color: var(--text-dim);
+      font-size: 15px;
+      line-height: 1.7;
+      margin-bottom: 12px;
+    }
 
-    /* Actions after results */
-    .result-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; margin-bottom: 28px; align-items: center; }
+    p:last-child { margin-bottom: 0; }
 
-    /* Divider */
-    hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+    /* ── Track list ── */
+    .track-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
 
-    /* Chat */
-    .chat-header { margin-bottom: 16px; }
-    .chat-header h3 { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-    .chat-header p { font-size: 13px; color: var(--text-dim); }
-    .thread { display: flex; flex-direction: column; gap: 14px; margin-bottom: 14px; }
-    .msg { display: flex; flex-direction: column; gap: 4px; }
-    .msg-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); font-family: var(--mono); }
-    .msg-body { padding: 13px 16px; border-radius: 6px; font-size: 14px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
-    .msg.user .msg-body { background: var(--navy-lit); border: 1px solid var(--border); color: var(--text); }
-    .msg.pf .msg-body { background: #122030; border: 1px solid var(--teal-dim); color: var(--text); }
-    .msg.thinking .msg-body { background: var(--navy-mid); border: 1px solid var(--border); color: var(--text-muted); font-style: italic; }
-    .msg.error .msg-body { background: #2a0f0f; border: 1px solid var(--fail); color: #e88; }
-    .chat-row { display: flex; gap: 10px; align-items: flex-end; }
-    textarea { flex: 1; background: var(--navy-lit); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.6; padding: 12px 14px; resize: none; min-height: 50px; max-height: 140px; outline: none; transition: border-color 0.15s; }
-    textarea:focus { border-color: var(--teal-dim); }
-    textarea::placeholder { color: var(--text-muted); }
-    .btn-send { background: var(--teal); border: none; border-radius: 6px; color: #0a1a28; cursor: pointer; font-family: var(--sans); font-size: 13px; font-weight: 600; padding: 0 18px; height: 50px; white-space: nowrap; transition: background 0.15s, opacity 0.15s; }
-    .btn-send:hover:not(:disabled) { background: var(--teal-lit); }
-    .btn-send:disabled { opacity: 0.35; cursor: not-allowed; }
+    .track-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
 
-    /* Error msg */
-    .inline-error { font-size: 12px; color: var(--fail); margin-top: 8px; }
+    .track-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--teal);
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
 
-    /* Footer */
-    footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-muted); display: flex; gap: 16px; flex-wrap: wrap; }
-    footer a { color: var(--text-muted); text-decoration: none; }
-    footer a:hover { color: var(--teal-lit); }
+    .track-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      display: block;
+      margin-bottom: 2px;
+    }
 
-    /* Feedback modal */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; display: flex; align-items: flex-start; justify-content: center; padding: 24px 16px 40px; overflow-y: auto; }
-    .modal { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 10px; max-width: 560px; width: 100%; padding: 28px 24px; position: relative; }
-    .modal-close { position: absolute; top: 14px; right: 16px; background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; line-height: 1; padding: 4px 8px; }
-    .modal-close:hover { color: var(--text); }
-    .modal h2 { font-size: 18px; font-weight: 600; color: var(--teal-lit); margin-bottom: 6px; }
-    .modal-scope { background: var(--navy); border: 1px solid var(--border); border-left: 3px solid var(--warn); border-radius: 6px; padding: 12px 14px; margin: 16px 0 20px; font-size: 13px; color: var(--text-dim); line-height: 1.6; }
-    .modal-scope strong { color: var(--warn); display: block; margin-bottom: 4px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
-    .modal-section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); margin: 22px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
-    .modal-section-label.secondary { color: var(--text-muted); }
-    .modal label { display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
-    .modal label strong { color: var(--text); }
-    .modal .radio-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-    .modal .radio-row input[type=radio] { display: none; }
-    .modal .radio-row label { background: var(--navy-lit); border: 1px solid var(--border); border-radius: 5px; padding: 6px 12px; font-size: 13px; color: var(--text-dim); cursor: pointer; transition: all 0.15s; margin: 0; }
-    .modal .radio-row input[type=radio]:checked + label { background: var(--teal-dim); border-color: var(--teal); color: var(--text); }
-    .modal textarea { width: 100%; background: var(--navy); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: var(--sans); font-size: 13px; line-height: 1.6; padding: 10px 12px; resize: vertical; min-height: 72px; margin-bottom: 16px; }
-    .modal textarea:focus { outline: none; border-color: var(--teal-dim); }
-    .modal textarea::placeholder { color: var(--text-muted); }
-    .modal-actions { display: flex; gap: 12px; margin-top: 8px; align-items: center; }
-    .modal-note { font-size: 11px; color: var(--text-muted); margin-top: 12px; }
-    .feedback-success { text-align: center; padding: 20px 0; }
-    .feedback-success .check { font-size: 36px; margin-bottom: 12px; }
-    .feedback-success h3 { font-size: 17px; font-weight: 600; color: var(--pass); margin-bottom: 8px; }
-    .feedback-success p { font-size: 13px; color: var(--text-dim); }
+    .track-desc {
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
 
-    /* Coverage gap note */
-    .coverage-gap { background: var(--navy-mid); border: 1px solid var(--border); border-left: 3px solid var(--warn); border-radius: 6px; padding: 14px 18px; margin-bottom: 16px; font-size: 13px; color: var(--text-dim); line-height: 1.65; }
-    .coverage-gap strong { color: var(--warn); display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 5px; font-family: var(--mono); }
-    .coverage-gap .cg-report { color: var(--teal); background: none; border: none; cursor: pointer; font-size: 13px; padding: 0; font-family: var(--sans); text-decoration: underline; margin-top: 8px; display: inline-block; }
-    .coverage-gap .cg-report:hover { color: var(--teal-lit); }
+    /* ── Beta notice ── */
+    .notice {
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--warn);
+      border-radius: 6px;
+      padding: 18px 20px;
+    }
 
-    /* Inline feedback strip */
-    .feedback-strip { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 8px; padding: 20px 22px; margin-top: 24px; }
-    .feedback-strip-label { font-size: 10px; font-family: var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; }
-    .feedback-vote-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
-    .vote-label { font-size: 13px; color: var(--text-dim); margin-right: 2px; flex-shrink: 0; }
-    .btn-vote { padding: 6px 16px; border: 1px solid var(--border); border-radius: 5px; background: var(--navy-lit); color: var(--text-dim); font-family: var(--sans); font-size: 13px; cursor: pointer; transition: all 0.15s; }
-    .btn-vote:hover { border-color: var(--teal-dim); color: var(--text); }
-    .btn-vote.selected { background: var(--teal-dim); border-color: var(--teal); color: var(--text); }
-    .feedback-strip textarea { width: 100%; background: var(--navy); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: var(--sans); font-size: 13px; line-height: 1.5; padding: 10px 12px; resize: none; min-height: 58px; margin-bottom: 12px; outline: none; transition: border-color 0.15s; }
-    .feedback-strip textarea:focus { border-color: var(--teal-dim); }
-    .feedback-strip textarea::placeholder { color: var(--text-muted); }
-    .strip-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-    .strip-note { font-size: 11px; color: var(--text-muted); margin-top: 10px; line-height: 1.5; }
-    .strip-success { padding: 10px 0 4px; font-size: 14px; color: var(--pass); }
+    .notice p {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
 
-    .hidden { display: none !important; }
+    .notice p:last-child { margin-bottom: 0; }
 
-    @media (max-width: 520px) {
-      .options.grid { grid-template-columns: 1fr; }
-      h1 { font-size: 22px; }
-      .card { padding: 20px 16px; }
-      .result-actions { flex-direction: column; align-items: flex-start; }
+    .notice strong { color: var(--warn); font-weight: 600; }
+
+    /* ── CTA ── */
+    .cta-block {
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 32px 28px;
+      text-align: center;
+    }
+
+    .cta-block h2 {
+      margin-bottom: 10px;
+    }
+
+    .cta-block p {
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      background: var(--teal);
+      color: #fff;
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 600;
+      padding: 14px 32px;
+      border-radius: 6px;
+      text-decoration: none;
+      letter-spacing: 0.01em;
+      transition: background 0.15s;
+    }
+
+    .btn-primary:hover {
+      background: var(--teal-lit);
+    }
+
+    .cta-note {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 16px;
+    }
+
+    /* ── Privacy / data note ── */
+    .data-note {
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 18px;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .data-note strong { color: var(--text-dim); font-weight: 600; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      margin-top: 60px;
+      padding-top: 24px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      h1 { font-size: 26px; }
+      .tagline { font-size: 15px; }
+      .cta-block { padding: 24px 18px; }
+      .btn-primary { width: 100%; text-align: center; display: block; }
     }
   </style>
 </head>
@@ -203,1457 +256,102 @@
 <div class="shell">
 
   <header>
-    <div class="brand">
-      <span>SQUAD BAT — Veteran Navigation</span>
-      <span class="beta">BETA</span>
-    </div>
+    <div class="wordmark">SQUAD BAT &mdash; Veteran Navigation <span class="beta-badge">BETA</span></div>
     <h1>Pathfinder</h1>
-    <p class="tagline">Answer a few questions. Get a clear path — who to call, what you qualify for, what to bring, and what to say.</p>
+    <p class="tagline">A navigator for veterans. Tell us your situation. We find the right path through VA programs, housing, healthcare, legal aid, and more.</p>
   </header>
 
-  <div class="privacy">
-    <strong>Privacy:</strong> Do not enter your full SSN, bank details, or unredacted DD-214 here. Use last-4 identifiers only. Your session is encrypted on your device — nothing is stored on our servers.
+  <!-- What it is -->
+  <div class="section">
+    <div class="section-label">What this is</div>
+    <p>
+      The VA system is complicated on purpose. Eligibility rules change, programs overlap, and the path from "I need help" to "here is the resource" is rarely clear. Pathfinder is a guided intake system that takes your situation — branch, discharge status, housing, disability, what you're dealing with — and routes you to the specific programs, offices, and contacts that apply.
+    </p>
+    <p>
+      It doesn't give legal or medical advice. It doesn't store your data on any server. It tells you where to go and who to call.
+    </p>
   </div>
 
-  <!-- MODE SELECT -->
-  <div id="mode-section" class="hidden">
-    <div class="card" style="margin-bottom:12px;">
-      <div class="card-question">How do you want to start?</div>
-      <div class="card-sub">Both paths get you to the same place — a clear action plan built around your situation.</div>
-      <div class="options" style="margin-top:20px;">
-        <button class="opt" id="mode-guided">
-          <span class="opt-icon">🧭</span>
-          <span class="opt-body">
-            <span class="opt-label">Help me figure out what I need</span>
-            <span class="opt-desc">I'm not sure where to start — ask me plain questions and map it out</span>
-          </span>
-        </button>
-        <button class="opt" id="mode-direct">
-          <span class="opt-icon">➡️</span>
-          <span class="opt-body">
-            <span class="opt-label">I know what I need help with</span>
-            <span class="opt-desc">Take me straight to the full intake — I'll pick my categories</span>
-          </span>
-        </button>
+  <!-- What it covers -->
+  <div class="section">
+    <div class="section-label">Coverage areas</div>
+    <div class="track-list">
+      <div class="track-item">
+        <div class="track-dot"></div>
+        <div>
+          <span class="track-name">VA Benefits &amp; Claims</span>
+          <span class="track-desc">Disability ratings, PACT Act burn pit presumptives, previously denied claims, appeals, TDIU, SMC, Aid &amp; Attendance.</span>
+        </div>
+      </div>
+      <div class="track-item">
+        <div class="track-dot"></div>
+        <div>
+          <span class="track-name">Housing</span>
+          <span class="track-desc">HUD-VASH, SSVF rapid re-housing, DV housing, criminal record barriers, VA home loan, eviction defense, adaptive housing grants.</span>
+        </div>
+      </div>
+      <div class="track-item">
+        <div class="track-dot"></div>
+        <div>
+          <span class="track-name">Healthcare &amp; Mental Health</span>
+          <span class="track-desc">VA enrollment, VAMC assignment, Vet Center referral, MST care, caregiver support, Crisis Line routing.</span>
+        </div>
+      </div>
+      <div class="track-item">
+        <div class="track-dot"></div>
+        <div>
+          <span class="track-name">Legal</span>
+          <span class="track-desc">Discharge upgrade, VA appeals, MST legal support, civilian legal aid, records correction, predatory lending.</span>
+        </div>
+      </div>
+      <div class="track-item">
+        <div class="track-dot"></div>
+        <div>
+          <span class="track-name">Business &amp; Employment</span>
+          <span class="track-desc">SDVOSB/VOSB certification, federal contracting, SBA programs, Voc Rehab Ch. 31, employment transition.</span>
+        </div>
+      </div>
+      <div class="track-item">
+        <div class="track-dot"></div>
+        <div>
+          <span class="track-name">Transportation, Women Veterans, Toxic Exposure</span>
+          <span class="track-desc">BTSSS travel pay, DAV transport, rural transport, Agent Orange, Camp Lejeune, Gulf War Syndrome, PFAS — plus women-specific care tracks.</span>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- VAULT SCREENS -->
-  <div id="vault-section">
-
-    <!-- New vault -->
-    <div id="vault-create" class="hidden">
-      <div class="card">
-        <div class="card-question">Create a personal phrase to save your progress</div>
-        <div class="card-sub">You can close Pathfinder and come back where you left off. Your phrase is your key — it never leaves your device, and we have no way to recover it if you lose it.</div>
-        <div class="input-stack">
-          <input type="password" id="vault-pass1" placeholder="Your personal phrase (something you won't forget)" autocomplete="new-password" />
-          <input type="password" id="vault-pass2" placeholder="Confirm your phrase" autocomplete="new-password" />
-          <p class="input-note"><strong>Write it down.</strong> If you lose your phrase, your saved session cannot be recovered. There is no reset option.</p>
-          <div id="vault-create-error" class="inline-error hidden"></div>
-        </div>
-        <div class="nav">
-          <button class="link-btn" id="vault-skip-btn">Skip — don't save my session</button>
-          <button class="btn btn-primary" id="vault-create-btn">Save my progress</button>
-        </div>
-        <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-size:13px; color:var(--muted);">
-          Returning from a different device?
-          <button class="link-btn" id="vault-load-file-btn" style="font-size:13px;">Load profile from file</button>
-          <input type="file" id="vault-file-input" accept=".json" style="display:none;" />
-          <div id="vault-import-error" class="inline-error hidden" style="margin-top:6px;"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Returning — unlock -->
-    <div id="vault-unlock" class="hidden">
-      <div class="card">
-        <div class="card-question">Welcome back</div>
-        <div class="card-sub">Enter your personal phrase to continue where you left off.</div>
-        <div id="vault-import-success" class="hidden" style="margin-bottom:10px; padding:8px 12px; background:var(--navy-lit); border:1px solid var(--border); border-radius:6px; font-size:13px; color:var(--text);">
-          Profile loaded from file. Enter your phrase to unlock it.
-        </div>
-        <div class="input-stack">
-          <input type="password" id="vault-unlock-pass" placeholder="Your personal phrase" autocomplete="current-password" />
-          <div id="vault-unlock-error" class="inline-error hidden"></div>
-        </div>
-        <div class="nav">
-          <button class="link-btn" id="vault-start-fresh-btn">Start fresh instead</button>
-          <button class="btn btn-primary" id="vault-unlock-btn">Continue</button>
-        </div>
-        <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-size:13px; color:var(--muted);">
-          Using a different device? <button class="link-btn" id="vault-export-btn" style="font-size:13px;">Save profile to file</button> to take it with you.
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- DIFF — returning veteran review screen -->
-  <div id="diff-section" class="hidden">
-    <div class="card">
-      <div class="card-question">Welcome back</div>
-      <div class="card-sub">Here's what we have on file. Has anything changed since we last spoke?</div>
-      <div id="diff-summary" style="margin:16px 0; display:flex; flex-direction:column; gap:8px;"></div>
-      <div class="nav" style="margin-top:8px; flex-wrap:wrap; gap:10px;">
-        <button class="btn btn-ghost" id="diff-update-btn">Something's changed — update my info</button>
-        <button class="btn btn-primary" id="diff-rerun-btn">Nothing's changed — run it</button>
-      </div>
+  <!-- Beta notice -->
+  <div class="section">
+    <div class="section-label">Beta status</div>
+    <div class="notice">
+      <p><strong>Limited access, Western Slope Colorado pilot.</strong> Pathfinder is under active development. We are testing with a small group of veterans across different branches, discharge statuses, and situations before expanding.</p>
+      <p>The system is honest about what it doesn't know. When local data for your area isn't confirmed, it says so. When a case is unusual, it flags it and tells you to verify with a VSO before acting. It will not route you toward a program you don't qualify for and call it complete.</p>
+      <p>National expansion is the goal. This is the pilot that gets it right first.</p>
     </div>
   </div>
 
-  <!-- INTAKE -->
-  <div id="intake-section" class="hidden">
-    <div class="progress" id="progress-bar"></div>
-    <div id="step-container"></div>
-  </div>
-
-  <!-- LOADING -->
-  <div id="loading-section" class="hidden">
-    <div class="loading">
-      <div class="spinner"></div>
-      <p>Pathfinder is mapping your route...</p>
-      <p class="loading-sub">Matching programs, contacts, and next steps to your situation.</p>
+  <!-- CTA -->
+  <div class="section">
+    <div class="cta-block">
+      <h2>Request access</h2>
+      <p>Send a brief email with your branch and state. Access is granted manually during the beta period. Response within 48 hours.</p>
+      <a class="btn-primary" href="mailto:admin@wyerd.org?subject=Pathfinder%20Beta%20Access%20Request&body=Branch%3A%20%0AState%3A%20%0ADischarge%20status%20(if%20comfortable%20sharing)%3A%20%0AWhat%20are%20you%20hoping%20to%20get%20help%20with%3F%0A">Request Access</a>
+      <div class="cta-note">Opens your default email client. No account required.</div>
     </div>
   </div>
 
-  <!-- RESULTS -->
-  <div id="results-section" class="hidden">
-    <div class="results-header">
-      <h2>Your Path</h2>
-      <p>Based on your intake. Use this in any meeting, call, or appointment.</p>
-    </div>
-
-    <!-- Coverage gap notice — shown when location is outside confirmed coverage -->
-    <div id="coverage-gap-block" class="coverage-gap hidden">
-      <strong>Coverage Note</strong>
-      <span id="coverage-gap-text"></span>
-      <button class="cg-report" id="coverage-report-btn">Report a local resource for this area →</button>
-    </div>
-
-    <div id="results-content"></div>
-    <div class="result-actions">
-      <button class="btn btn-ghost" onclick="window.print()">Print / Save as PDF</button>
-      <button class="btn btn-ghost" id="export-profile-btn">Save profile to file</button>
-      <button class="link-btn" id="start-over-btn">Start over for a different situation</button>
-    </div>
-    <div id="export-profile-msg" class="inline-error hidden" style="margin-top:8px;"></div>
-
-    <!-- Inline feedback strip -->
-    <div class="feedback-strip">
-      <div class="feedback-strip-label">Help Pathfinder Help Others</div>
-      <div id="strip-form">
-        <div class="feedback-vote-row">
-          <span class="vote-label">Was this useful?</span>
-          <button class="btn-vote" data-vote="yes">Yes</button>
-          <button class="btn-vote" data-vote="partially">Partially</button>
-          <button class="btn-vote" data-vote="no">No</button>
-        </div>
-        <textarea id="strip-missing" placeholder="What did we miss? Wrong number, missing program, gap in your area — anything helps." rows="2"></textarea>
-        <div class="strip-actions">
-          <button class="btn btn-primary" id="strip-submit">Send</button>
-          <button class="link-btn" id="open-feedback-btn" style="font-size:13px;">File a detailed report →</button>
-        </div>
-        <div id="strip-error" class="inline-error" style="display:none;margin-top:8px;"></div>
-        <div class="strip-note">Anonymous. Only what you type here is sent. Location and need area added from your intake if provided.</div>
-      </div>
-      <div id="strip-success" class="strip-success hidden">Received. Thank you — this goes directly into building the next branch.</div>
-    </div>
-
-    <hr />
-
-    <div class="chat-header">
-      <h3>Need to talk through any of this?</h3>
-      <p>Pathfinder knows your situation. Ask anything — a specific program, what to say if they push back, what to bring.</p>
-    </div>
-    <div class="thread" id="thread"></div>
-    <div class="chat-row">
-      <textarea id="chat-input" placeholder="Ask Pathfinder anything about your situation..." rows="2"></textarea>
-      <button class="btn-send" id="chat-send">Ask</button>
+  <!-- Data note -->
+  <div class="section">
+    <div class="data-note">
+      <strong>Your data stays with you.</strong> Pathfinder does not store veteran data on any server. Intake answers are processed in real time and discarded. If you save a session profile, it is encrypted and stored on your device only — you hold the key, we don't.
     </div>
   </div>
 
   <footer>
-    <span>Pathfinder — SQUAD BAT Veteran Navigation — Beta</span>
-    <a href="/landing.html" style="color:var(--text-muted);text-decoration:none;">About this tool</a>
+    SQUAD BAT &mdash; Veteran Navigation &mdash; squad.wyerd.org &mdash; <a href="mailto:admin@wyerd.org" style="color: var(--text-muted); text-decoration: none;">admin@wyerd.org</a>
   </footer>
 
-  <!-- Feedback Modal -->
-  <div class="modal-overlay hidden" id="feedback-modal">
-    <div class="modal">
-      <button class="modal-close" id="feedback-close">✕</button>
-
-      <div id="feedback-form-wrap">
-        <h2>Help Pathfinder Help Others</h2>
-        <p style="font-size:13px;color:var(--text-dim);">You went through the process. What you found is ammunition for the next veteran.</p>
-
-        <div class="modal-scope">
-          <strong>⚑ Important — Read First</strong>
-          SQUAD BAT cannot intervene with the VA on your behalf right now. We are not lawyers, we are not the VA, and we cannot guarantee any individual outcome. What we can do: build the record. Every complaint you file — with a specific office, a specific date, a specific failure — becomes part of a documented case file. When SQUAD BAT has the standing, the numbers, and the national weight behind it, that record is exactly how we go to bat. We are not collecting complaints to feel busy. We are building the evidence base for precision, targeted advocacy that forces real accountability. Your data is a round in that chamber.
-        </div>
-
-        <div class="modal-section-label">① Data — This is the priority</div>
-
-        <label><strong>Did the contact info Pathfinder gave you actually work?</strong></label>
-        <div class="radio-row">
-          <input type="radio" name="contact_worked" id="cw-yes" value="yes"><label for="cw-yes">Yes, it worked</label>
-          <input type="radio" name="contact_worked" id="cw-partial" value="partially"><label for="cw-partial">Partially</label>
-          <input type="radio" name="contact_worked" id="cw-no" value="no"><label for="cw-no">No</label>
-          <input type="radio" name="contact_worked" id="cw-notried" value="not_tried"><label for="cw-notried">Haven't tried yet</label>
-        </div>
-
-        <label for="fb-found"><strong>What did you actually find?</strong> Phone numbers that worked or didn't, office names, wait times, programs that exist or don't in your area.</label>
-        <textarea id="fb-found" placeholder="e.g. Grand Junction VAMC benefits line is 970-263-5100, picked up same day. VSO office at 2460 Main is walk-in Tuesdays only."></textarea>
-
-        <label for="fb-missing"><strong>What was missing that would have helped you?</strong></label>
-        <textarea id="fb-missing" placeholder="e.g. No info on the SSVF office in Mesa County. Didn't know I needed to bring a buddy statement."></textarea>
-
-        <div class="modal-section-label secondary">② Your Experience — Optional</div>
-
-        <label for="fb-experience">How did Pathfinder work for you? What was clear, what was confusing?</label>
-        <textarea id="fb-experience" placeholder="Optional — this goes to a human and helps improve the tool."></textarea>
-
-        <div class="modal-section-label secondary">③ File a Complaint — Optional</div>
-
-        <label for="fb-complaint"><strong>Where did the system fail you?</strong> <span style="color:var(--text-dim)">Be specific — office name, date, what happened, what they said. Vague complaints help no one. Documented ones build cases.</span></label>
-        <textarea id="fb-complaint" placeholder="e.g. Grand Junction VA Regional Office, May 2026. Submitted HLR in January, called 3 times, told to 'just wait.' No status, no contact. Rep gave wrong form number twice."></textarea>
-
-        <p class="modal-note">Your intake answers are not sent with this form. Only what you type here is shared. Location is added from your intake if you provided it.</p>
-
-        <div class="modal-actions">
-          <button class="btn btn-primary" id="feedback-submit">Contribute to Pathfinder</button>
-          <button class="btn btn-ghost" id="feedback-cancel">Cancel</button>
-        </div>
-
-        <div id="feedback-error" style="display:none;color:var(--fail);font-size:13px;margin-top:10px;"></div>
-      </div>
-
-      <div id="feedback-success-wrap" class="feedback-success hidden">
-        <div class="check">✓</div>
-        <h3>Contribution received.</h3>
-        <p>What you found is now part of the database. The next veteran who comes through here gets better information because of it.</p>
-        <button class="btn btn-ghost" id="feedback-done" style="margin-top:16px;">Close</button>
-      </div>
-    </div>
-  </div>
-
 </div>
-<script>
-const WORKER = 'https://pathfinder-worker.justinaiark101.workers.dev';
-const STORAGE_KEY = 'pf_session_v1';
-const SALT_KEY    = 'pf_salt_v1';
-
-// ── Crypto helpers ────────────────────────────────────────────────────────────
-
-async function deriveKey(passphrase, saltBytes) {
-  const enc = new TextEncoder();
-  const raw = await crypto.subtle.importKey('raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']);
-  return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt: saltBytes, iterations: 150000, hash: 'SHA-256' },
-    raw,
-    { name: 'AES-GCM', length: 256 },
-    false,
-    ['encrypt', 'decrypt']
-  );
-}
-
-async function encryptSession(passphrase, data) {
-  let saltArr = JSON.parse(localStorage.getItem(SALT_KEY) || 'null');
-  if (!saltArr) {
-    saltArr = Array.from(crypto.getRandomValues(new Uint8Array(16)));
-    localStorage.setItem(SALT_KEY, JSON.stringify(saltArr));
-  }
-  const salt = new Uint8Array(saltArr);
-  const key  = await deriveKey(passphrase, salt);
-  const iv   = crypto.getRandomValues(new Uint8Array(12));
-  const enc  = new TextEncoder();
-  const ct   = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(JSON.stringify(data)));
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ iv: Array.from(iv), ct: Array.from(new Uint8Array(ct)) }));
-}
-
-async function decryptSession(passphrase) {
-  const stored  = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-  const saltArr = JSON.parse(localStorage.getItem(SALT_KEY) || 'null');
-  if (!stored || !saltArr) return null;
-  try {
-    const key  = await deriveKey(passphrase, new Uint8Array(saltArr));
-    const plain = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv: new Uint8Array(stored.iv) },
-      key,
-      new Uint8Array(stored.ct)
-    );
-    return JSON.parse(new TextDecoder().decode(plain));
-  } catch { return null; }
-}
-
-function hasStoredSession() {
-  return !!(localStorage.getItem(STORAGE_KEY) && localStorage.getItem(SALT_KEY));
-}
-
-function clearSession() {
-  localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem(SALT_KEY);
-}
-
-async function importProfile(file) {
-  const errEl = document.getElementById('vault-import-error');
-  const showErr = (msg) => { errEl.textContent = msg; errEl.classList.remove('hidden'); };
-  errEl.classList.add('hidden');
-
-  try {
-    const text = await file.text();
-    const data = JSON.parse(text);
-
-    if (data.schema !== 'squad-bat.veteran-profile.v1') {
-      showErr('This doesn\'t look like a Pathfinder profile — check you selected the right file.');
-      return;
-    }
-    if (!data.salt || !data.session || !data.session.iv || !data.session.ct) {
-      showErr('Profile file is incomplete or damaged. Try exporting a fresh copy from your other device.');
-      return;
-    }
-
-    // Load encrypted blob into localStorage — same structure encryptSession() writes
-    localStorage.setItem(SALT_KEY,    JSON.stringify(data.salt));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data.session));
-
-    // Switch to vault-unlock — they now have a stored session to unlock
-    hide('vault-create');
-    document.getElementById('vault-import-success').classList.remove('hidden');
-    show('vault-unlock');
-
-  } catch {
-    showErr('Could not read the file. Make sure it is a Pathfinder profile (.json).');
-  }
-}
-
-async function exportProfile() {
-  // Make sure the latest session state is saved before exporting
-  await saveSession();
-
-  const stored  = localStorage.getItem(STORAGE_KEY);
-  const saltRaw = localStorage.getItem(SALT_KEY);
-
-  if (!stored || !saltRaw) {
-    // No vault set — guide them to create one first
-    const el = document.getElementById('export-profile-msg');
-    if (el) {
-      el.textContent = 'Set a personal phrase first — scroll up and create your vault, then come back to save your file.';
-      el.classList.remove('hidden');
-      setTimeout(() => el.classList.add('hidden'), 6000);
-    }
-    return;
-  }
-
-  const profile = {
-    schema:   'squad-bat.veteran-profile.v1',
-    exported: new Date().toISOString().split('T')[0],
-    note:     'This file is encrypted. Your personal phrase is required to open it. Keep your phrase and this file separate.',
-    salt:     JSON.parse(saltRaw),
-    session:  JSON.parse(stored),   // contains { iv, ct } — useless without the passphrase
-  };
-
-  const blob = new Blob([JSON.stringify(profile, null, 2)], { type: 'application/json' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = 'pathfinder-profile.json';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-// ── State ─────────────────────────────────────────────────────────────────────
-
-let currentStep  = 0;
-let intake       = {};
-let chatHistory  = [];
-let chatBusy     = false;
-let vaultPass    = null;
-let savedResults = null;
-let activeSteps  = null; // set at mode select
-let stripVote    = null; // inline feedback strip vote
-
-// ── Intake steps ──────────────────────────────────────────────────────────────
-
-const STEPS = [
-  // ── GATE 1: Service status ────────────────────────────────────────────────────
-  {
-    id: 'service_status', question: "What is your service status?",
-    sub: "Pathfinder needs this before anything else — eligibility is completely different depending on where you stand. Everything else is built on this answer.", type: 'single',
-    options: [
-      { value: 'veteran',          label: 'Veteran — I have been discharged',           desc: 'Served and separated from active duty, Reserve, or Guard', icon: '🎖️' },
-      { value: 'active_duty',      label: 'Currently on active duty',                   desc: 'Full-time military service right now', icon: '⭐' },
-      { value: 'reserve_guard',    label: 'Reserve or National Guard — not mobilized',  desc: 'Drilling but not currently on federal orders', icon: '🛡️' },
-      { value: 'activated',        label: 'Reserve / Guard — currently activated',      desc: 'Mobilized under Title 10 federal orders', icon: '🛡️' },
-      { value: 'surviving_family', label: 'Surviving family member of a veteran',       desc: 'Spouse, child, or dependent of a deceased veteran', icon: '🤝' },
-      { value: 'caregiver',        label: 'Caregiver for a veteran',                    desc: 'Providing care for a veteran with a service-connected disability', icon: '🤝' },
-      { value: 'not_sure',         label: "I'm not sure of my status",                  desc: "Not certain which category applies — Pathfinder will help figure it out", icon: '❓' },
-    ],
-  },
-  // ── GATE 2: Discharge character — changes everything, must be asked early ────
-  {
-    id: 'discharge', question: "What type of discharge do you have?",
-    sub: "This isn't a judgment — it's a routing question. Even an OTH or Dishonorable doesn't mean zero options. It means a different set of options, and Pathfinder will be honest about what those are.",
-    type: 'single',
-    skip: (i) => ['surviving_family', 'caregiver', 'active_duty'].includes(i.service_status),
-    options: [
-      { value: 'honorable',    label: 'Honorable',                                    desc: 'Full access to VA benefits', icon: '🎖️' },
-      { value: 'general_uhc',  label: 'General — Under Honorable Conditions',         desc: 'Most VA benefits available', icon: '📄' },
-      { value: 'oth',          label: 'Other Than Honorable (OTH)',                   desc: 'Significantly limits benefits — but not zero. Upgrade path exists.', icon: '⚠️' },
-      { value: 'bcd',          label: 'Bad Conduct Discharge (BCD)',                  desc: 'Issued by court-martial. Very limited federal benefits. State resources still available.', icon: '⚠️' },
-      { value: 'dishonorable', label: 'Dishonorable',                                 desc: 'Most federal benefits unavailable. Emergency mental health and discharge upgrade still possible.', icon: '⚠️' },
-      { value: 'entry_level',  label: 'Entry Level Separation',                       desc: 'Served less than 180 days. Limited eligibility — circumstances matter.', icon: '📄' },
-      { value: 'medical',      label: 'Medical Discharge / IDES',                     desc: 'Service-connected medical separation — specific routing applies', icon: '🏥' },
-      { value: 'unknown',      label: "Not sure / don't have my DD-214",              desc: "Pathfinder can still help — we'll note it", icon: '❓' },
-    ],
-  },
-  // ── GATE 3: Branch — affects program availability beyond medical ─────────────
-  {
-    id: 'branch', question: "What branch did you serve in?",
-    sub: "Pick all that apply — many veterans served in more than one. Reserves, Guard, and Coast Guard are all here.", type: 'multi',
-    skip: (i) => ['surviving_family', 'caregiver'].includes(i.service_status),
-    options: [
-      { value: 'army',         label: 'Army',                  icon: '⭐' },
-      { value: 'navy',         label: 'Navy',                  icon: '⚓' },
-      { value: 'marines',      label: 'Marine Corps',          icon: '🦅' },
-      { value: 'air_force',    label: 'Air Force',             icon: '✈️' },
-      { value: 'space_force',  label: 'Space Force',           desc: 'Est. 2019', icon: '🚀' },
-      { value: 'coast_guard',  label: 'Coast Guard',           desc: 'Full VA eligibility — often overlooked', icon: '⚓' },
-      { value: 'army_ng',      label: 'Army National Guard',   icon: '🛡️' },
-      { value: 'army_reserve', label: 'Army Reserve',          icon: '🛡️' },
-      { value: 'air_ng',       label: 'Air National Guard',    icon: '🛡️' },
-      { value: 'af_reserve',   label: 'Air Force Reserve',     icon: '🛡️' },
-      { value: 'navy_reserve', label: 'Navy Reserve',          icon: '🛡️' },
-      { value: 'usmc_reserve', label: 'Marine Corps Reserve',  icon: '🛡️' },
-      { value: 'uscg_reserve', label: 'Coast Guard Reserve',   icon: '🛡️' },
-    ],
-  },
-  // ── GATE 4: Component ─────────────────────────────────────────────────────────
-  {
-    id: 'component', question: "Enlisted or officer?",
-    sub: "Pick all that apply — some veterans were enlisted then commissioned, or served as warrant officers.", type: 'multi',
-    skip: (i) => ['surviving_family', 'caregiver'].includes(i.service_status),
-    options: [
-      { value: 'enlisted', label: 'Enlisted',              desc: 'E-1 through E-9',  icon: '⭐' },
-      { value: 'warrant',  label: 'Warrant Officer',       desc: 'WO1 through CW5',  icon: '⭐' },
-      { value: 'officer',  label: 'Commissioned Officer',  desc: 'O-1 through O-10', icon: '⭐' },
-    ],
-  },
-  // ── GATE 5: Era ───────────────────────────────────────────────────────────────
-  {
-    id: 'era', question: "When did you serve?",
-    sub: "Pick all that apply — era determines which programs you can access.", type: 'multi',
-    skip: (i) => ['surviving_family', 'caregiver'].includes(i.service_status),
-    options: [
-      { value: 'wwii',         label: 'World War II',              desc: '1941–1945', icon: '⭐' },
-      { value: 'korea',        label: 'Korean War',                desc: '1950–1953 — the Forgotten War; your service was not forgotten here', icon: '⭐' },
-      { value: 'vietnam',      label: 'Vietnam Era',               desc: '1964–1975 — Agent Orange presumptive conditions, many still unclaimed', icon: '⭐' },
-      { value: 'cold_war',     label: 'Post-Vietnam / Cold War',   desc: '1975–1990 — includes Camp Lejeune water contamination period', icon: '⭐' },
-      { value: 'gulf_war',     label: 'Gulf War',                  desc: '1990–2001 — Gulf War Syndrome presumptives, PACT Act coverage', icon: '⭐' },
-      { value: 'post_911',     label: 'Post-9/11 (OEF / OIF / OND)', desc: '2001–present — PACT Act covers burn pit and toxic exposure', icon: '⭐' },
-      { value: 'transitioning',label: 'Currently separating',      desc: 'Active duty transitioning out now — SkillBridge and TAP available', icon: '🔄' },
-    ],
-  },
-  // ── NEEDS: Now that we know who they are ─────────────────────────────────────
-  {
-    id: 'need', question: "What do you need help with?",
-    sub: "Pick everything that applies — Pathfinder will map all of it.", type: 'multi',
-    options: [
-      { value: 'housing',        label: 'Housing',               desc: 'Finding housing, vouchers, landlord issues, eviction risk',           icon: '🏠' },
-      { value: 'medical',        label: 'Healthcare / Medical',   desc: 'VA healthcare enrollment, care access, mental health',                icon: '🏥' },
-      { value: 'claims',         label: 'Disability Claim',       desc: 'Filing a claim, rating increase, appeals, TDIU',                     icon: '📋' },
-      { value: 'benefits',       label: 'VA Benefits / Programs', desc: 'GI Bill, pension, home loan, survivor benefits, burial',             icon: '🎖️' },
-      { value: 'toxic_exposure', label: 'Toxic Exposure',         desc: 'Agent Orange, burn pits, Camp Lejeune water — era-specific programs', icon: '⚠️' },
-      { value: 'employment',     label: 'Employment / Training',  desc: 'Jobs, retraining, SkillBridge, transition assistance',               icon: '💼' },
-      { value: 'business',       label: 'Business / Contracting', desc: 'Veteran-owned business cert, federal contracts, GSA surplus',        icon: '🏢' },
-      { value: 'legal',          label: 'Legal Issue',            desc: 'Discharge upgrade, eviction notice, court date, supervision',        icon: '⚖️' },
-      { value: 'crisis',         label: 'Crisis / Immediate',     desc: 'I need help right now — tonight or today',                          icon: '🚨' },
-    ],
-  },
-  {
-    id: 'housing_status', question: "What's your housing situation right now?",
-    sub: "Pick the one that best describes where you are tonight.", type: 'single',
-    options: [
-      { value: 'unsheltered',    label: 'Outside / no shelter',   desc: 'Sleeping outside, no place to go tonight', icon: '⛺' },
-      { value: 'car',            label: 'In my car',               desc: 'Sleeping in a vehicle',                   icon: '🚗' },
-      { value: 'shelter',        label: 'In a shelter',            desc: 'Emergency shelter or transitional housing',icon: '🏢' },
-      { value: 'couch',          label: 'Couch surfing',           desc: "Staying with someone — not my place",     icon: '🛋️' },
-      { value: 'unstable_housed',label: 'Housed but at risk',      desc: 'Facing eviction or losing housing soon',  icon: '⚠️' },
-      { value: 'stable',         label: 'Stable housing',          desc: 'Housing is secure — need other help',     icon: '✅' },
-    ],
-  },
-  {
-    id: 'va_history', question: "What's your history with the VA?",
-    sub: "A first-time filer and someone already receiving benefits need completely different paths.", type: 'single',
-    options: [
-      { value: 'never',              label: 'Never contacted the VA',                  desc: "Starting from zero — don't know where to begin", icon: '❓' },
-      { value: 'contacted_only',     label: 'Contacted them but never enrolled',       desc: 'Fell through the cracks or gave up', icon: '⏸️' },
-      { value: 'healthcare_only',    label: 'Enrolled in VA healthcare — no disability claim', desc: "Using the clinic but haven't filed for compensation", icon: '🏥' },
-      { value: 'claim_active',       label: 'I have an active claim or appeal pending', desc: 'Filed and waiting, or currently fighting a decision', icon: '⏳' },
-      { value: 'receiving_comp',     label: 'I receive VA disability compensation',    desc: 'Already in the system with a rating', icon: '✅' },
-      { value: 'denied',             label: 'I was denied and never appealed',         desc: 'Got a no and stopped — want to know my options now', icon: '❌' },
-    ],
-  },
-  {
-    id: 'disability_rating', question: "What is your current disability rating?",
-    sub: "If you don't have one yet, pick accordingly — this helps find what you may be leaving on the table.", type: 'single',
-    options: [
-      { value: 'none',    label: 'No rating — never filed a claim',       desc: 'First time or never completed the process', icon: '—' },
-      { value: 'pending', label: 'Claim pending — waiting on a decision', desc: '', icon: '⏳' },
-      { value: '0_20',    label: '0% – 20%',                              desc: 'Service connection established, lower range', icon: '📊' },
-      { value: '30_60',   label: '30% – 60%',                             desc: 'Mid-range rating', icon: '📊' },
-      { value: '70_90',   label: '70% – 90%',                             desc: 'Higher range — TDIU may apply at 70%+', icon: '📊' },
-      { value: '100',     label: '100% (or Permanent & Total)',            desc: 'Full rating — check dependent and survivor benefits', icon: '🎖️' },
-      { value: 'tdiu',    label: 'TDIU — Individual Unemployability',     desc: 'Paid at 100% rate, service-connected unemployability', icon: '🎖️' },
-      { value: 'denied',  label: 'Was denied — no current rating',        desc: 'Claim was rejected, want to know about refiling', icon: '❌' },
-    ],
-  },
-  {
-    id: 'current_programs', question: "Which VA programs are you currently enrolled in?",
-    sub: "Select all that apply — even if you're not actively using them right now.", type: 'multi',
-    options: [
-      { value: 'va_healthcare',   label: 'VA Healthcare',                   desc: 'Enrolled with a VA doctor or clinic', icon: '🏥' },
-      { value: 'disability_comp', label: 'Disability Compensation',         desc: 'Monthly payment for service-connected conditions', icon: '💵' },
-      { value: 'gi_bill',         label: 'GI Bill (Education)',             desc: 'Chapter 33 Post-9/11 or Chapter 30 Montgomery', icon: '🎓' },
-      { value: 'vre',             label: 'VR&E / Chapter 31',               desc: 'Vocational Rehabilitation & Employment', icon: '💼' },
-      { value: 'va_home_loan',    label: 'VA Home Loan',                    desc: 'Used or currently using the VA loan benefit', icon: '🏠' },
-      { value: 'va_pension',      label: 'VA Pension',                      desc: 'Need-based pension for wartime veterans', icon: '💵' },
-      { value: 'pcafc',           label: 'Caregiver Program (PCAFC)',       desc: 'Program of Comprehensive Assistance for Family Caregivers', icon: '🤝' },
-      { value: 'none',            label: 'None of the above',               desc: 'Not currently enrolled in any VA programs', icon: '—' },
-    ],
-  },
-  {
-    id: 'income', question: "Roughly what's your monthly income?",
-    sub: "All sources — pay, disability, benefits, etc. Approximate is fine.", type: 'single',
-    options: [
-      { value: 'none',       label: 'No income right now',       icon: '—'  },
-      { value: 'under_500',  label: 'Under $500 / month',        icon: '💵' },
-      { value: '500_1000',   label: '$500 – $1,000 / month',     icon: '💵' },
-      { value: '1000_2000',  label: '$1,000 – $2,000 / month',   icon: '💵' },
-      { value: 'over_2000',  label: 'Over $2,000 / month',       icon: '💵' },
-    ],
-  },
-  {
-    id: 'location', question: "What state and county are you in?",
-    sub: "Lets Pathfinder find the right offices and contacts for your area.", type: 'location',
-  },
-  {
-    id: 'urgency', question: "How urgent is your situation?",
-    sub: null, type: 'single',
-    options: [
-      { value: 'tonight',  label: 'I need help tonight',    desc: 'Immediate — crisis level',              icon: '🚨' },
-      { value: 'days',     label: 'In the next few days',   desc: 'Very soon — deadline or acute need',    icon: '⚡' },
-      { value: 'weeks',    label: 'In the next few weeks',  desc: 'Important but not immediate',           icon: '📅' },
-      { value: 'planning', label: 'Planning ahead',         desc: 'No immediate crisis — getting prepared',icon: '🗺️' },
-    ],
-  },
-];
-
-// ── Guided intake steps (plain language, fewer steps) ────────────────────────
-
-const GUIDED_STEPS = [
-  // ── GATE: Service status first — no exceptions ───────────────────────────────
-  {
-    id: 'service_status',
-    question: "What is your service status?",
-    sub: "This has to come first — everything Pathfinder tells you depends on this answer. Giving advice before knowing this could send you in the wrong direction.",
-    type: 'single',
-    options: [
-      { value: 'veteran',          label: 'Veteran — I have been discharged',           desc: 'Served and separated from active duty, Reserve, or Guard', icon: '🎖️' },
-      { value: 'active_duty',      label: 'Currently on active duty',                   desc: 'Full-time military service right now', icon: '⭐' },
-      { value: 'reserve_guard',    label: 'Reserve or National Guard — not mobilized',  desc: 'Drilling but not on federal orders', icon: '🛡️' },
-      { value: 'activated',        label: 'Reserve / Guard — currently activated',      desc: 'Mobilized under Title 10 federal orders', icon: '🛡️' },
-      { value: 'surviving_family', label: 'Surviving family member of a veteran',       desc: 'Spouse, child, or dependent of a deceased veteran', icon: '🤝' },
-      { value: 'caregiver',        label: 'Caregiver for a veteran',                    desc: 'Providing care for a veteran with a service-connected disability', icon: '🤝' },
-      { value: 'not_sure',         label: "I'm not sure",                               desc: "Pathfinder will help figure out what applies", icon: '❓' },
-    ],
-  },
-  // ── GATE 2: Discharge — must come before any needs questions ────────────────
-  {
-    id: 'discharge',
-    question: "What type of discharge do you have?",
-    sub: "This isn't a judgment — it's a routing question. Even an OTH or Dishonorable doesn't mean zero options. It means a different set of options, and Pathfinder will be honest about what those are.",
-    type: 'single',
-    skip: (i) => ['surviving_family', 'caregiver', 'active_duty'].includes(i.service_status),
-    options: [
-      { value: 'honorable',    label: 'Honorable',                                     desc: 'Full access to VA benefits', icon: '🎖️' },
-      { value: 'general_uhc',  label: 'General — Under Honorable Conditions',          desc: 'Most VA benefits available', icon: '📄' },
-      { value: 'oth',          label: 'Other Than Honorable (OTH)',                    desc: 'Significantly limits benefits — but not zero. Upgrade path exists.', icon: '⚠️' },
-      { value: 'bcd',          label: 'Bad Conduct Discharge (BCD)',                   desc: 'Very limited federal benefits. State resources still available.', icon: '⚠️' },
-      { value: 'dishonorable', label: 'Dishonorable',                                  desc: 'Most federal benefits unavailable. Emergency mental health and discharge upgrade still possible.', icon: '⚠️' },
-      { value: 'entry_level',  label: 'Entry Level Separation',                        desc: 'Less than 180 days served. Limited eligibility.', icon: '📄' },
-      { value: 'medical',      label: 'Medical Discharge / IDES',                      desc: 'Service-connected medical separation', icon: '🏥' },
-      { value: 'unknown',      label: "Not sure / don't have my DD-214",               desc: "Pathfinder can still help — we'll note it", icon: '❓' },
-    ],
-  },
-  // ── GATE 3–5: Branch, Component, Era — before needs questions ───────────────
-  {
-    id: 'branch',
-    question: "What branch did you serve in?",
-    sub: "Pick all that apply — many veterans served in more than one. Reserves, Guard, and Coast Guard are all here.",
-    type: 'multi',
-    skip: (i) => ['surviving_family', 'caregiver'].includes(i.service_status),
-    options: [
-      { value: 'army',         label: 'Army',                  icon: '⭐' },
-      { value: 'navy',         label: 'Navy',                  icon: '⚓' },
-      { value: 'marines',      label: 'Marine Corps',          icon: '🦅' },
-      { value: 'air_force',    label: 'Air Force',             icon: '✈️' },
-      { value: 'space_force',  label: 'Space Force',           desc: 'Est. 2019', icon: '🚀' },
-      { value: 'coast_guard',  label: 'Coast Guard',           desc: 'Full VA eligibility — often overlooked', icon: '⚓' },
-      { value: 'army_ng',      label: 'Army National Guard',   icon: '🛡️' },
-      { value: 'army_reserve', label: 'Army Reserve',          icon: '🛡️' },
-      { value: 'air_ng',       label: 'Air National Guard',    icon: '🛡️' },
-      { value: 'af_reserve',   label: 'Air Force Reserve',     icon: '🛡️' },
-      { value: 'navy_reserve', label: 'Navy Reserve',          icon: '🛡️' },
-      { value: 'usmc_reserve', label: 'Marine Corps Reserve',  icon: '🛡️' },
-      { value: 'uscg_reserve', label: 'Coast Guard Reserve',   icon: '🛡️' },
-    ],
-  },
-  {
-    id: 'component',
-    question: "Enlisted or officer?",
-    sub: "Pick all that apply — some veterans were enlisted then commissioned, or served as warrant officers.",
-    type: 'multi',
-    skip: (i) => ['surviving_family', 'caregiver'].includes(i.service_status),
-    options: [
-      { value: 'enlisted', label: 'Enlisted',              desc: 'E-1 through E-9',  icon: '⭐' },
-      { value: 'warrant',  label: 'Warrant Officer',       desc: 'WO1 through CW5',  icon: '⭐' },
-      { value: 'officer',  label: 'Commissioned Officer',  desc: 'O-1 through O-10', icon: '⭐' },
-    ],
-  },
-  {
-    id: 'era',
-    question: "When did you serve?",
-    sub: "Pick all that apply — this determines which programs are available to you.",
-    type: 'multi',
-    skip: (i) => ['surviving_family', 'caregiver'].includes(i.service_status),
-    options: [
-      { value: 'wwii',          label: 'World War II',                 desc: '1941–1945', icon: '⭐' },
-      { value: 'korea',         label: 'Korean War',                   desc: '1950–1953', icon: '⭐' },
-      { value: 'vietnam',       label: 'Vietnam Era',                  desc: '1964–1975 — Agent Orange presumptive conditions', icon: '⭐' },
-      { value: 'cold_war',      label: 'Post-Vietnam / Cold War',      desc: '1975–1990 — includes Camp Lejeune period', icon: '⭐' },
-      { value: 'gulf_war',      label: 'Gulf War',                     desc: '1990–2001', icon: '⭐' },
-      { value: 'post_911',      label: 'Post-9/11 (OEF / OIF / OND)', desc: '2001–present — PACT Act burn pit coverage', icon: '⭐' },
-      { value: 'transitioning', label: 'Currently separating',         desc: 'Active duty getting out now', icon: '🔄' },
-    ],
-  },
-  // ── NEEDS: Identity established — now what do they need ──────────────────────
-  {
-    id: 'guided_situation',
-    question: "What do you need help with?",
-    sub: "Select everything that applies — most veterans have more than one thing going on.",
-    type: 'multi',
-    guided: true,
-    options: [
-      { value: 'housing',    label: "I don't have a stable place to stay",              desc: "No housing, about to lose it, or not safe where I am", icon: '🏠' },
-      { value: 'health',     label: "I'm dealing with health problems",                  desc: "Need care, mental health support, or treatment I can't access", icon: '🏥' },
-      { value: 'money',      label: "Money is really tight",                             desc: "I'm not getting what I'm owed or I need more income", icon: '💵' },
-      { value: 'service',    label: "Something from my service is catching up with me",  desc: "Injuries, exposures, conditions — stuff I was never compensated for", icon: '🎖️' },
-      { value: 'transition', label: "I just got out and don't know what I'm entitled to", desc: "New veteran still figuring out what benefits exist", icon: '🔄' },
-      { value: 'legal',      label: "I'm dealing with a legal problem",                  desc: "Discharge issues, court, eviction notice, supervision", icon: '⚖️' },
-      { value: 'crisis',     label: "I need help right now — tonight",                   desc: "Immediate danger, crisis, can't wait", icon: '🚨' },
-    ],
-  },
-  {
-    id: 'va_history',
-    question: "Have you used VA services before?",
-    sub: "This changes the advice significantly — your starting point matters.",
-    type: 'single',
-    options: [
-      { value: 'never',           label: 'No — this is my first time',                      icon: '❓' },
-      { value: 'healthcare_only', label: "I use VA healthcare but haven't filed a disability claim", icon: '🏥' },
-      { value: 'receiving_comp',  label: 'Yes — I receive VA disability compensation',       icon: '✅' },
-      { value: 'claim_active',    label: 'I have a claim or appeal in progress right now',  icon: '⏳' },
-      { value: 'denied',          label: 'I tried before and was denied',                   icon: '❌' },
-      { value: 'contacted_only',  label: 'I contacted them but nothing came of it',         icon: '⏸️' },
-    ],
-  },
-  {
-    id: 'va_facility_issues',
-    question: "Have you had problems with your local VA facility?",
-    sub: "If the VA itself has been a barrier — complaints filed, care denied, or you feel the facility has worked against you — that changes the routing significantly.",
-    type: 'single',
-    skip: (i) => i.va_history === 'never',
-    options: [
-      { value: 'no',           label: 'No issues with the facility',                       desc: 'My experience with the local VA has been okay', icon: '✅' },
-      { value: 'complaints',   label: 'I have filed or want to file complaints',            desc: 'Specific incidents — care denied, mistreated, ignored', icon: '📋' },
-      { value: 'obstruction',  label: 'The facility has actively blocked my access',        desc: 'Denied care, retaliation, or the facility is the problem', icon: '🚫' },
-      { value: 'distrust',     label: "I don't trust my local VA but haven't filed anything", desc: 'Bad experiences but no formal action taken', icon: '⚠️' },
-    ],
-  },
-  {
-    id: 'disability_rating',
-    question: "Do you have a VA disability rating?",
-    sub: "Even a 0% rating matters — it establishes service connection.",
-    type: 'single',
-    options: [
-      { value: 'none',    label: 'No rating — never filed',      icon: '—' },
-      { value: 'pending', label: 'Claim pending',                icon: '⏳' },
-      { value: '0_20',    label: '0% – 20%',                     icon: '📊' },
-      { value: '30_60',   label: '30% – 60%',                    icon: '📊' },
-      { value: '70_90',   label: '70% – 90%',                    icon: '📊' },
-      { value: '100',     label: '100% or Permanent & Total',    icon: '🎖️' },
-      { value: 'tdiu',    label: 'TDIU (paid at 100% rate)',     icon: '🎖️' },
-      { value: 'denied',  label: 'Was denied',                   icon: '❌' },
-    ],
-  },
-  {
-    id: 'location',
-    question: "What state and county are you in?",
-    sub: "Pathfinder uses this to find the right local offices and contacts.",
-    type: 'location',
-  },
-  {
-    id: 'urgency',
-    question: "How urgent is your situation?",
-    sub: null,
-    type: 'single',
-    options: [
-      { value: 'tonight',  label: 'I need help tonight',   desc: 'Immediate — crisis level',               icon: '🚨' },
-      { value: 'days',     label: 'In the next few days',  desc: 'Very soon — deadline or acute need',     icon: '⚡' },
-      { value: 'weeks',    label: 'In the next few weeks', desc: 'Important but not immediate',            icon: '📅' },
-      { value: 'planning', label: 'Planning ahead',        desc: 'No immediate crisis — getting prepared', icon: '🗺️' },
-    ],
-  },
-];
-
-// Map guided_situation selections → intake fields (handles multiple selections)
-function applyGuidedSituation(values) {
-  const map = {
-    housing:    { need: ['housing'] },
-    health:     { need: ['medical'] },
-    money:      { need: ['claims', 'benefits'] },
-    service:    { need: ['claims', 'toxic_exposure'] },
-    transition: { need: ['benefits', 'employment'] },
-    legal:      { need: ['legal'] },
-    crisis:     { need: ['crisis'], urgency: 'tonight' },
-  };
-  const needSet = new Set();
-  const arr = Array.isArray(values) ? values : [values];
-  arr.forEach(v => {
-    const mapped = map[v] || { need: [] };
-    mapped.need.forEach(n => needSet.add(n));
-    if (mapped.urgency) intake.urgency = mapped.urgency;
-  });
-  intake.need = [...needSet];
-}
-
-// ── Vault flow ────────────────────────────────────────────────────────────────
-
-function show(id) { document.getElementById(id).classList.remove('hidden'); }
-function hide(id) { document.getElementById(id).classList.add('hidden'); }
-
-function showModeSelect() {
-  hide('vault-section');
-  show('mode-section');
-}
-
-function startIntake(steps) {
-  activeSteps = steps;
-  currentStep = 0;
-  hide('mode-section');
-  show('intake-section');
-  renderProgress();
-  renderStep();
-}
-
-function initVault() {
-  if (hasStoredSession()) {
-    show('vault-unlock');
-  } else {
-    show('vault-create');
-  }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  initVault();
-
-  // Create vault
-  document.getElementById('vault-create-btn').addEventListener('click', async () => {
-    const p1 = document.getElementById('vault-pass1').value;
-    const p2 = document.getElementById('vault-pass2').value;
-    const err = document.getElementById('vault-create-error');
-    err.classList.add('hidden');
-
-    if (!p1 || p1.length < 6) { err.textContent = 'Phrase must be at least 6 characters.'; err.classList.remove('hidden'); return; }
-    if (p1 !== p2) { err.textContent = 'Phrases do not match.'; err.classList.remove('hidden'); return; }
-
-    vaultPass = p1;
-    showModeSelect();
-  });
-
-  // Skip vault
-  document.getElementById('vault-skip-btn').addEventListener('click', () => {
-    vaultPass = null;
-    showModeSelect();
-  });
-
-  // Unlock vault
-  document.getElementById('vault-unlock-btn').addEventListener('click', async () => {
-    const pass = document.getElementById('vault-unlock-pass').value;
-    const err  = document.getElementById('vault-unlock-error');
-    err.classList.add('hidden');
-
-    if (!pass) { err.textContent = 'Enter your phrase.'; err.classList.remove('hidden'); return; }
-
-    const session = await decryptSession(pass);
-    if (!session) { err.textContent = 'Phrase is incorrect. Check your phrase and try again.'; err.classList.remove('hidden'); return; }
-
-    vaultPass = pass;
-    restoreSession(session);
-  });
-
-  // Mode select
-  document.getElementById('mode-guided').addEventListener('click', () => startIntake(GUIDED_STEPS));
-  document.getElementById('mode-direct').addEventListener('click', () => startIntake(STEPS));
-
-  // Start fresh
-  document.getElementById('vault-start-fresh-btn').addEventListener('click', () => {
-    clearSession();
-    hide('vault-unlock');
-    show('vault-create');
-  });
-
-  // Start over
-  // Diff screen buttons
-  document.getElementById('diff-rerun-btn').addEventListener('click', () => {
-    // Re-submit existing intake without going through the wizard again
-    hide('diff-section');
-    submitIntake();
-  });
-  document.getElementById('diff-update-btn').addEventListener('click', () => {
-    // Go to mode select — intake is already pre-filled, they'll only change what's different
-    isReturning = true;
-    hide('diff-section');
-    showModeSelect();
-  });
-
-  document.getElementById('export-profile-btn').addEventListener('click', exportProfile);
-
-  // Export from vault-unlock screen
-  document.getElementById('vault-export-btn').addEventListener('click', exportProfile);
-
-  // Import — "Load profile from file" link triggers hidden file input
-  document.getElementById('vault-load-file-btn').addEventListener('click', () => {
-    document.getElementById('vault-file-input').value = '';   // reset so same file can be re-selected
-    document.getElementById('vault-file-input').click();
-  });
-  document.getElementById('vault-file-input').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) importProfile(file);
-  });
-
-  document.getElementById('start-over-btn').addEventListener('click', () => {
-    if (!confirm('Start over? This will clear your current results and intake.')) return;
-    clearSession();
-    intake = {}; chatHistory = []; currentStep = 0; savedResults = null;
-    hide('results-section');
-    document.getElementById('thread').innerHTML = '';
-    document.getElementById('results-content').innerHTML = '';
-    show('vault-section');
-    hide('vault-unlock');
-    hide('vault-create');
-    show('vault-create');
-  });
-
-  // Chat
-  document.getElementById('chat-send').addEventListener('click', sendChat);
-  document.getElementById('chat-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
-  });
-  document.getElementById('chat-input').addEventListener('input', function () {
-    this.style.height = 'auto';
-    this.style.height = Math.min(this.scrollHeight, 140) + 'px';
-  });
-});
-
-// ── Session save/restore ──────────────────────────────────────────────────────
-
-async function saveSession() {
-  if (!vaultPass) return;
-  await encryptSession(vaultPass, { currentStep, intake, savedResults, chatHistory });
-}
-
-// ── Returning veteran — diff screen ──────────────────────────────────────────
-
-const _DIFF_LABELS = {
-  branch: {
-    marine_corps: 'Marine Corps', army: 'Army', navy: 'Navy',
-    air_force: 'Air Force', coast_guard: 'Coast Guard',
-    army_national_guard: 'Army National Guard',
-    air_national_guard: 'Air National Guard',
-  },
-  discharge: {
-    honorable: 'Honorable',
-    general: 'General Under Honorable Conditions',
-    other_than_honorable: 'Other Than Honorable (OTH)',
-    dishonorable: 'Dishonorable',
-    medical: 'Medical discharge / retirement',
-    entry_level: 'Entry Level Separation',
-    bcd: 'Bad Conduct Discharge',
-    unknown: 'Discharge status unknown',
-  },
-  service_status: {
-    veteran: 'Veteran (separated)', active: 'Active duty',
-    reserve: 'Reserve / Guard', retired: 'Retired military',
-    dependent: 'Dependent / family member', not_sure: 'Not sure',
-  },
-  housing_status: {
-    unhoused: 'Currently unhoused', unstable: 'Housing unstable',
-    at_risk: 'Housing at risk', stable: 'Housing stable',
-  },
-  va_history: {
-    never: 'Never contacted the VA',
-    contacted_only: 'Contacted but never enrolled',
-    healthcare_only: 'Enrolled in VA healthcare only',
-    claim_active: 'Active claim or appeal pending',
-    receiving_comp: 'Receiving VA disability compensation',
-    denied: 'Was denied — never appealed',
-  },
-  disability_rating: {
-    none: 'No rating', pending: 'Rating pending',
-    '0_20': '0–20%', '30_60': '30–60%', '70_90': '70–90%',
-    '100': '100% (or P&T)', tdiu: 'TDIU', denied: 'Denied',
-  },
-};
-
-function _diffLabel(map, val) {
-  if (!val || val === 'unknown') return null;
-  return map[val] || val;
-}
-
-function buildIntakeSummary(data) {
-  const rows = [];
-
-  const branch = _diffLabel(_DIFF_LABELS.branch, data.branch);
-  if (branch) rows.push(['Branch', branch]);
-
-  const discharge = _diffLabel(_DIFF_LABELS.discharge, data.discharge);
-  if (discharge) rows.push(['Discharge', discharge]);
-
-  const status = _diffLabel(_DIFF_LABELS.service_status, data.service_status);
-  if (status) rows.push(['Status', status]);
-
-  const hs = _diffLabel(_DIFF_LABELS.housing_status, data.housing_status);
-  if (hs) {
-    const chronic = data.is_chronically_homeless ? ' — 6+ months (chronic)' : '';
-    rows.push(['Housing', hs + chronic]);
-  }
-
-  const vaHist = _diffLabel(_DIFF_LABELS.va_history, data.va_history);
-  if (vaHist) rows.push(['VA history', vaHist]);
-
-  const rating = _diffLabel(_DIFF_LABELS.disability_rating, data.disability_rating);
-  if (rating) rows.push(['Disability rating', rating]);
-
-  if (data.active_criminal_case) {
-    let cc = 'Active criminal case';
-    if (data.criminal_case_type) cc += ` (${data.criminal_case_type.toUpperCase()})`;
-    if (data.claiming_self_defense) cc += ' — self-defense claim';
-    rows.push(['Legal', cc]);
-  }
-
-  if (data.va_facility_obstruction || data.va_facility_issues) {
-    rows.push(['VA facility', 'Issues / complaints on file']);
-  }
-
-  const loc = data.state || (data.location && data.location.state);
-  const county = data.county || (data.location && data.location.county);
-  if (loc) rows.push(['Location', county ? `${loc} — ${county} County` : loc]);
-
-  if (Array.isArray(data.need) && data.need.length) {
-    rows.push(['Needs flagged', data.need.join(', ')]);
-  }
-
-  return rows;
-}
-
-function showDiffScreen(session) {
-  const rows = buildIntakeSummary(session.intake || {});
-  const el   = document.getElementById('diff-summary');
-
-  if (!rows.length) {
-    // Nothing meaningful to show — skip diff and go straight to mode select
-    showModeSelect();
-    return;
-  }
-
-  el.innerHTML = rows.map(([label, val]) =>
-    `<div style="display:flex; gap:10px; font-size:14px; line-height:1.5;">
-       <span style="min-width:130px; color:var(--muted); flex-shrink:0;">${label}</span>
-       <span style="color:var(--text);">${val}</span>
-     </div>`
-  ).join('');
-
-  hide('vault-section');
-  show('diff-section');
-}
-
-let isReturning = false;
-
-function restoreSession(session) {
-  currentStep  = session.currentStep  || 0;
-  intake       = session.intake       || {};
-  savedResults = session.savedResults || null;
-  chatHistory  = session.chatHistory  || [];
-
-  if (savedResults) {
-    // Completed intake previously — show diff screen instead of jumping straight to results
-    isReturning = true;
-    showDiffScreen(session);
-  } else {
-    // Mid-intake resume — continue where they left off, no diff needed
-    hide('vault-section');
-    show('intake-section');
-    renderProgress();
-    renderStep();
-  }
-}
-
-// ── Render intake ─────────────────────────────────────────────────────────────
-
-function renderProgress() {
-  const steps = activeSteps || STEPS;
-  const bar = document.getElementById('progress-bar');
-  bar.innerHTML = '';
-  steps.forEach((_, i) => {
-    const dot = document.createElement('div');
-    dot.className = 'progress-dot' + (i < currentStep ? ' done' : i === currentStep ? ' active' : '');
-    bar.appendChild(dot);
-  });
-  const lbl = document.createElement('span');
-  lbl.className = 'progress-label';
-  lbl.textContent = `${currentStep + 1} / ${steps.length}`;
-  bar.appendChild(lbl);
-}
-
-function renderStep() {
-  const steps = activeSteps || STEPS;
-  const step = steps[currentStep];
-  const container = document.getElementById('step-container');
-  const isLast = currentStep === steps.length - 1;
-
-  let html = `<div class="card">
-    <div class="card-question">${step.question}</div>
-    ${step.sub ? `<div class="card-sub">${step.sub}</div>` : ''}`;
-
-  if (step.type === 'single') {
-    html += `<div class="options">`;
-    step.options.forEach(opt => {
-      html += `<button class="opt" data-value="${opt.value}">
-        ${opt.icon ? `<span class="opt-icon">${opt.icon}</span>` : ''}
-        <span class="opt-body">
-          <span class="opt-label">${opt.label}</span>
-          ${opt.desc ? `<span class="opt-desc">${opt.desc}</span>` : ''}
-        </span></button>`;
-    });
-    html += `</div>`;
-  } else if (step.type === 'multi') {
-    const cur = Array.isArray(intake[step.id]) ? intake[step.id] : [];
-    html += `<div class="options">`;
-    step.options.forEach(opt => {
-      html += `<button class="opt${cur.includes(opt.value) ? ' selected' : ''}" data-value="${opt.value}">
-        ${opt.icon ? `<span class="opt-icon">${opt.icon}</span>` : ''}
-        <span class="opt-body">
-          <span class="opt-label">${opt.label}</span>
-          ${opt.desc ? `<span class="opt-desc">${opt.desc}</span>` : ''}
-        </span></button>`;
-    });
-    html += `</div>`;
-    const hasSelected = cur.length > 0;
-    html += `<div class="nav">
-      ${currentStep > 0 ? `<button class="btn btn-ghost" id="btn-back">Back</button>` : `<span></span>`}
-      <div style="display:flex;gap:12px;align-items:center">
-        <button class="link-btn" id="btn-skip">Skip</button>
-        <button class="btn btn-primary" id="btn-next" ${!hasSelected ? 'disabled' : ''}>${isLast ? 'Find My Path' : 'Next'}</button>
-      </div></div>`;
-  } else if (step.type === 'location') {
-    const state  = intake.location?.state  || '';
-    const county = intake.location?.county || '';
-    html += `<div class="input-stack">
-      <input type="text" id="loc-state" placeholder="State (e.g., CO)" maxlength="2" value="${state}" />
-      <input type="text" id="loc-county" placeholder="County (e.g., Mesa)" value="${county}" />
-    </div>
-    <div class="nav">
-      ${currentStep > 0 ? `<button class="btn btn-ghost" id="btn-back">Back</button>` : `<span></span>`}
-      <div style="display:flex;gap:12px;align-items:center">
-        <button class="link-btn" id="btn-skip">Skip</button>
-        <button class="btn btn-primary" id="btn-next">${isLast ? 'Find My Path' : 'Next'}</button>
-      </div></div>`;
-  }
-
-  if (step.type === 'single') {
-    html += `<div class="nav">
-      ${currentStep > 0 ? `<button class="btn btn-ghost" id="btn-back">Back</button>` : `<span></span>`}
-      <button class="link-btn" id="btn-skip">Skip</button>
-    </div>`;
-  }
-
-  html += `</div>`;
-  container.innerHTML = html;
-
-  // Wire events
-  if (step.type === 'single') {
-    container.querySelectorAll('.opt').forEach(btn => {
-      btn.addEventListener('click', () => {
-        intake[step.id] = btn.dataset.value;
-        advance();
-      });
-    });
-  } else if (step.type === 'multi') {
-    container.querySelectorAll('.opt').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (!Array.isArray(intake[step.id])) intake[step.id] = [];
-        const v = btn.dataset.value;
-        const idx = intake[step.id].indexOf(v);
-        if (idx >= 0) intake[step.id].splice(idx, 1); else intake[step.id].push(v);
-        btn.classList.toggle('selected', intake[step.id].includes(v));
-        document.getElementById('btn-next').disabled = intake[step.id].length === 0;
-      });
-    });
-    document.getElementById('btn-next')?.addEventListener('click', advance);
-  } else if (step.type === 'location') {
-    document.getElementById('btn-next')?.addEventListener('click', () => {
-      const state  = document.getElementById('loc-state').value.trim().toUpperCase();
-      const county = document.getElementById('loc-county').value.trim();
-      intake.location = { state: state || null, county: county || null };
-      advance();
-    });
-  }
-
-  document.getElementById('btn-back')?.addEventListener('click', () => { currentStep--; renderProgress(); renderStep(); });
-  document.getElementById('btn-skip')?.addEventListener('click', advance);
-}
-
-async function advance() {
-  const steps = activeSteps || STEPS;
-  const step = steps[currentStep];
-  // Apply guided mapping when leaving a guided multi-select step
-  if (step && step.guided && step.type === 'multi' && intake[step.id]) {
-    applyGuidedSituation(intake[step.id]);
-  }
-  await saveSession();
-  currentStep++;
-  // Skip steps that don't apply based on current intake answers
-  while (currentStep < steps.length && steps[currentStep].skip && steps[currentStep].skip(intake)) {
-    currentStep++;
-  }
-  if (currentStep >= steps.length) {
-    submitIntake();
-  } else {
-    renderProgress();
-    renderStep();
-  }
-}
-
-// ── Submit + results ──────────────────────────────────────────────────────────
-
-async function submitIntake() {
-  hide('intake-section');
-  hide('diff-section');
-  show('loading-section');
-
-  try {
-    const res  = await fetch(`${WORKER}/process`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ intake, is_returning: isReturning }),
-    });
-    const data = await res.json();
-    hide('loading-section');
-    if (!res.ok || data.error) { showErrorResult(data.error || 'Something went wrong. Refresh and try again.'); return; }
-    savedResults = data.response;
-    await saveSession();
-    showResults(data.response);
-  } catch {
-    hide('loading-section');
-    showErrorResult('Could not reach Pathfinder. Check your connection and try again.');
-  }
-}
-
-function fmt(text) {
-  return text.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
-}
-
-// ── Coverage gap detection ────────────────────────────────────────────────────
-
-const _COVERAGE_REGIONS = {
-  western_slope: {
-    label: 'Western Slope Colorado',
-    counties: ['mesa', 'delta', 'montrose', 'garfield', 'gunnison', 'ouray', 'san miguel', 'rio blanco', 'moffat', 'grand', 'eagle', 'pitkin'],
-    state: 'CO',
-  },
-  front_range: {
-    label: 'Front Range Colorado (El Paso / Pueblo)',
-    counties: ['el paso', 'teller', 'pueblo', 'fremont', 'custer'],
-    state: 'CO',
-  },
-};
-
-function getCoverageNote(intakeData) {
-  const state  = (intakeData?.location?.state  || intakeData?.state  || '').toUpperCase().trim();
-  const county = (intakeData?.location?.county || intakeData?.county || '').toLowerCase().trim();
-
-  if (!state) {
-    return 'No location provided. Pathfinder is returning national VA contacts only. For local VSO offices, county-specific housing contacts, and region-specific programs, run again with your state and county.';
-  }
-
-  // Check deep regional coverage (county-verified)
-  for (const region of Object.values(_COVERAGE_REGIONS)) {
-    if (region.state === state && region.counties.some(c => county.includes(c))) {
-      return null; // Fully covered — confirmed local data
-    }
-  }
-
-  // All 50 states have a statewide shard — primary VAMC + state VSO always available.
-  // Show a lighter note when state is known but county isn't deeply covered.
-  const loc = county ? `${state} — ${county.charAt(0).toUpperCase() + county.slice(1)} County` : state;
-  const deepCoverage = Object.values(_COVERAGE_REGIONS).some(r => r.state === state);
-
-  if (deepCoverage) {
-    // State has regions but this county isn't in one yet
-    return `Pathfinder has confirmed local data for some areas of ${state} but not yet for ${county ? county.charAt(0).toUpperCase() + county.slice(1) + ' County' : 'your county'}. The contacts above include your state VSO and primary VA facility — verified for ${state}. Local office addresses and direct lines may not be confirmed. Report a resource below if you find one.`;
-  }
-
-  // State covered at statewide level only
-  return `Pathfinder has statewide data for ${state} — your state VSO and primary VA Medical Center are included above. Local county-level contacts have not been individually verified yet. Call your county VSO before relying on any specific address or number. If you find a confirmed local resource, report it below.`;
-}
-
-function showErrorResult(msg) {
-  show('results-section');
-  document.getElementById('results-content').innerHTML = `
-    <div class="result-block" style="border-color:var(--fail);background:#1a0808">
-      <div class="result-content">${msg}</div>
-    </div>`;
-}
-
-function showResults(text, isRestore = false) {
-  show('results-section');
-  const sections = text.split(/(?=\*\*[A-Z][A-Z\s\/]+\*\*)/);
-  let html = '';
-  sections.forEach((s, i) => {
-    if (!s.trim()) return;
-    const isPrimary = i === 0 || /^\*\*PRIMARY PATH\*\*/.test(s);
-    html += `<div class="result-block${isPrimary ? ' primary' : ''}"><div class="result-content">${fmt(s.trim())}</div></div>`;
-  });
-  document.getElementById('results-content').innerHTML = html || `<div class="result-block primary"><div class="result-content">${fmt(text)}</div></div>`;
-
-  // Coverage gap detection
-  const gapNote = getCoverageNote(intake);
-  const gapBlock = document.getElementById('coverage-gap-block');
-  const gapText  = document.getElementById('coverage-gap-text');
-  if (gapNote) {
-    gapText.textContent = gapNote;
-    gapBlock.classList.remove('hidden');
-  } else {
-    gapBlock.classList.add('hidden');
-  }
-
-  // Reset feedback strip for fresh results view
-  stripVote = null;
-  document.querySelectorAll('.btn-vote').forEach(b => b.classList.remove('selected'));
-  const stripMissing = document.getElementById('strip-missing');
-  if (stripMissing) stripMissing.value = '';
-  document.getElementById('strip-form')?.classList.remove('hidden');
-  document.getElementById('strip-success')?.classList.add('hidden');
-  document.getElementById('strip-error') && (document.getElementById('strip-error').style.display = 'none');
-}
-
-// ── Chat ──────────────────────────────────────────────────────────────────────
-
-function addMsg(role, content, type = '') {
-  const thread = document.getElementById('thread');
-  const el = document.createElement('div');
-  el.className = `msg ${role}${type ? ' ' + type : ''}`;
-  const lbl = document.createElement('div'); lbl.className = 'msg-label'; lbl.textContent = role === 'user' ? 'You' : 'Pathfinder';
-  const body = document.createElement('div'); body.className = 'msg-body';
-  if (role === 'pf' && !type) body.innerHTML = fmt(content); else body.textContent = content;
-  el.appendChild(lbl); el.appendChild(body); thread.appendChild(el);
-  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  return el;
-}
-
-async function sendChat() {
-  const input = document.getElementById('chat-input');
-  const text  = input.value.trim();
-  if (!text || chatBusy) return;
-
-  chatBusy = true;
-  document.getElementById('chat-send').disabled = true;
-  input.value = ''; input.style.height = 'auto';
-
-  addMsg('user', text);
-  chatHistory.push({ role: 'user', content: text });
-  const thinking = addMsg('pf', 'Checking...', 'thinking');
-
-  try {
-    const res  = await fetch(`${WORKER}/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, intake, history: chatHistory.slice(0, -1) }),
-    });
-    const data = await res.json();
-    thinking.remove();
-
-    if (!res.ok || data.error) { addMsg('pf', data.error || 'Something went wrong.', 'error'); }
-    else {
-      addMsg('pf', data.response);
-      chatHistory.push({ role: 'assistant', content: data.response });
-      if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
-      await saveSession();
-    }
-  } catch { thinking.remove(); addMsg('pf', 'Could not reach Pathfinder. Check your connection.', 'error'); }
-
-  chatBusy = false;
-  document.getElementById('chat-send').disabled = false;
-  input.focus();
-}
-
-// ── Feedback modal ────────────────────────────────────────────────────────────
-
-function openFeedback() {
-  document.getElementById('feedback-modal').classList.remove('hidden');
-  document.getElementById('feedback-form-wrap').classList.remove('hidden');
-  document.getElementById('feedback-success-wrap').classList.add('hidden');
-  document.getElementById('feedback-error').style.display = 'none';
-  document.body.style.overflow = 'hidden';
-}
-
-function closeFeedback() {
-  document.getElementById('feedback-modal').classList.add('hidden');
-  document.body.style.overflow = '';
-}
-
-document.getElementById('open-feedback-btn')?.addEventListener('click', openFeedback);
-
-// Coverage gap → open feedback modal pre-focused on what's missing
-document.getElementById('coverage-report-btn')?.addEventListener('click', () => {
-  openFeedback();
-  // Scroll to the "what did we miss" field in the modal
-  setTimeout(() => document.getElementById('fb-missing')?.focus(), 120);
-});
-
-// Inline feedback strip — vote buttons
-document.querySelectorAll('.btn-vote').forEach(btn => {
-  btn.addEventListener('click', () => {
-    stripVote = btn.dataset.vote;
-    document.querySelectorAll('.btn-vote').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-  });
-});
-
-// Inline feedback strip — submit
-document.getElementById('strip-submit')?.addEventListener('click', async () => {
-  const what_was_missing = document.getElementById('strip-missing')?.value.trim() || null;
-  if (!stripVote && !what_was_missing) {
-    const err = document.getElementById('strip-error');
-    err.textContent = 'Select a rating or describe what was missing before sending.';
-    err.style.display = 'block';
-    return;
-  }
-  document.getElementById('strip-error').style.display = 'none';
-
-  const submitBtn = document.getElementById('strip-submit');
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Sending…';
-
-  const payload = {
-    contact_worked: stripVote || null,
-    what_was_missing,
-    what_you_found: null,
-    experience: null,
-    complaint: null,
-    state:     intake?.location?.state  || null,
-    county:    intake?.location?.county || null,
-    need_area: intake?.need ? (Array.isArray(intake.need) ? intake.need.join(', ') : intake.need) : null,
-    source: 'strip',
-  };
-
-  try {
-    const res = await fetch(`${WORKER}/feedback`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (res.ok && data.ok) {
-      document.getElementById('strip-form')?.classList.add('hidden');
-      document.getElementById('strip-success')?.classList.remove('hidden');
-    } else {
-      throw new Error(data.error || 'Unknown error');
-    }
-  } catch {
-    const err = document.getElementById('strip-error');
-    err.textContent = 'Could not send — try the detailed report link, or email admin@wyerd.org.';
-    err.style.display = 'block';
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Send';
-  }
-});
-document.getElementById('feedback-close').addEventListener('click', closeFeedback);
-document.getElementById('feedback-cancel').addEventListener('click', closeFeedback);
-document.getElementById('feedback-done').addEventListener('click', closeFeedback);
-
-// Close on overlay click (outside modal box)
-document.getElementById('feedback-modal').addEventListener('click', e => {
-  if (e.target === document.getElementById('feedback-modal')) closeFeedback();
-});
-
-document.getElementById('feedback-submit').addEventListener('click', async () => {
-  const contact_worked = document.querySelector('input[name="contact_worked"]:checked')?.value || null;
-  const what_you_found = document.getElementById('fb-found').value.trim();
-  const what_was_missing = document.getElementById('fb-missing').value.trim();
-  const experience = document.getElementById('fb-experience').value.trim();
-  const complaint = document.getElementById('fb-complaint').value.trim();
-
-  if (!contact_worked && !what_you_found && !what_was_missing && !experience && !complaint) {
-    const err = document.getElementById('feedback-error');
-    err.textContent = 'Please fill in at least one field before submitting.';
-    err.style.display = 'block';
-    return;
-  }
-
-  const btn = document.getElementById('feedback-submit');
-  btn.disabled = true;
-  btn.textContent = 'Sending…';
-
-  const payload = {
-    contact_worked,
-    what_you_found: what_you_found || null,
-    what_was_missing: what_was_missing || null,
-    experience: experience || null,
-    complaint: complaint || null,
-    state: intake?.location?.state || null,
-    county: intake?.location?.county || null,
-    need_area: intake?.need ? (Array.isArray(intake.need) ? intake.need.join(', ') : intake.need) : null,
-  };
-
-  try {
-    const res = await fetch(`${WORKER}/feedback`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (res.ok && data.ok) {
-      document.getElementById('feedback-form-wrap').classList.add('hidden');
-      document.getElementById('feedback-success-wrap').classList.remove('hidden');
-    } else {
-      throw new Error(data.error || 'Unknown error');
-    }
-  } catch (err) {
-    const errEl = document.getElementById('feedback-error');
-    errEl.textContent = 'Could not submit — please try again or email admin@wyerd.org.';
-    errEl.style.display = 'block';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Contribute to Pathfinder';
-  }
-});
-</script>
 </body>
 </html>
