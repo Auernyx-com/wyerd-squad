@@ -1188,10 +1188,18 @@ function showDiffScreen(session) {
     return;
   }
 
+  // Independent-audit finding (2026-09-06), high: `val` here can carry
+  // veteran-entered free text (the county field, in particular -- see
+  // buildIntakeSummary's Location row) with no prior escaping, and this
+  // fires automatically on every vault unlock. Confirmed with a probe:
+  // a county value of an <img onerror=...> payload executed here, no
+  // chat/backend involvement needed. Escaped at this single render
+  // boundary rather than chasing which specific rows are user-controlled
+  // -- covers every row uniformly, including any added later.
   el.innerHTML = rows.map(([label, val]) =>
     `<div style="display:flex; gap:10px; font-size:14px; line-height:1.5;">
-       <span style="min-width:130px; color:var(--muted); flex-shrink:0;">${label}</span>
-       <span style="color:var(--text);">${val}</span>
+       <span style="min-width:130px; color:var(--muted); flex-shrink:0;">${escapeHtml(label)}</span>
+       <span style="color:var(--text);">${escapeHtml(val)}</span>
      </div>`
   ).join('');
 
@@ -1278,8 +1286,14 @@ function renderStep() {
         <button class="btn btn-primary" id="btn-next" ${!hasSelected ? 'disabled' : ''}>${isLast ? 'Find My Path' : 'Next'}</button>
       </div></div>`;
   } else if (step.type === 'location') {
-    const state  = intake.location?.state  || '';
-    const county = intake.location?.county || '';
+    // Independent-audit finding (2026-09-06), high: these values are
+    // unrestricted free text (`maxlength` only limits interactive typing,
+    // not a value already stored in `intake` from a prior render/import)
+    // interpolated straight into a double-quoted HTML attribute with no
+    // escaping. Confirmed with a probe: a crafted county value broke out
+    // of the value="" attribute and executed via autofocus/onfocus.
+    const state  = escapeHtml(intake.location?.state  || '');
+    const county = escapeHtml(intake.location?.county || '');
     html += `<div class="input-stack">
       <input type="text" id="loc-state" placeholder="State (e.g., CO)" maxlength="2" value="${state}" />
       <input type="text" id="loc-county" placeholder="County (e.g., Mesa)" value="${county}" />
@@ -1381,8 +1395,32 @@ async function submitIntake() {
   }
 }
 
+// Independent-audit finding (2026-09-06), critical: fmt() only converted
+// **bold** markdown to <strong> tags and did zero HTML-escaping, but its
+// output was assigned via .innerHTML in showResults/showErrorResult/
+// addMsg. Any HTML in a backend AI response (data.response/data.error --
+// this app talks to an LLM, and getting a model to echo back attacker-
+// supplied markup in its own reply is a low bar) executed as live markup.
+// Confirmed with a probe before this fix: a crafted response containing
+// <img src=x onerror=...> ran the handler in the same global scope as
+// vaultPass and the decrypted intake/chatHistory -- full vault
+// exfiltration, defeating the "stays encrypted on your device" promise.
+//
+// Fixed by escaping the raw text FIRST, then applying the bold-markdown
+// substitution on the already-escaped text (asterisks aren't touched by
+// escaping, so **bold** still becomes <strong>bold</strong> correctly --
+// only genuine HTML metacharacters in the original text get neutralized).
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function fmt(text) {
-  return text.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+  return escapeHtml(text).replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
 }
 
 // ── Coverage gap detection ────────────────────────────────────────────────────
@@ -1433,7 +1471,7 @@ function showErrorResult(msg) {
   show('results-section');
   document.getElementById('results-content').innerHTML = `
     <div class="result-block" style="border-color:var(--fail);background:#1a0808">
-      <div class="result-content">${msg}</div>
+      <div class="result-content">${escapeHtml(msg)}</div>
     </div>`;
 }
 
