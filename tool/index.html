@@ -465,8 +465,27 @@ async function deriveKey(passphrase, saltBytes) {
   );
 }
 
+// Independent-audit finding (2026-09-06), low-medium: these JSON.parse
+// calls ran unguarded, before this function's own try/catch (or with no
+// try/catch at all in exportProfile below). A corrupted pf_session_v1/
+// pf_salt_v1 value in localStorage (a browser extension writing to the
+// origin, a partial/interrupted write, storage-quota eviction, or
+// devtools tampering by a prior user on a shared device) threw a
+// SyntaxError that propagated as an unhandled promise rejection from the
+// click handlers that call these -- no ".catch()" exists anywhere in that
+// chain, so the veteran saw absolutely nothing happen: no "Phrase is
+// incorrect" message, no error at all, just a dead button. Confirmed with
+// a probe: decryptSession() threw synchronously with a truncated
+// pf_session_v1 value, before its own try block. Fixed by parsing inside
+// a try/catch that treats corrupted storage the same as "no valid stored
+// session" -- null, handled by the existing (correct) caller logic.
 async function encryptSession(passphrase, data) {
-  let saltArr = JSON.parse(localStorage.getItem(SALT_KEY) || 'null');
+  let saltArr = null;
+  try {
+    saltArr = JSON.parse(localStorage.getItem(SALT_KEY) || 'null');
+  } catch {
+    saltArr = null; // corrupted salt -> treat as none, generate a fresh one below
+  }
   if (!saltArr) {
     saltArr = Array.from(crypto.getRandomValues(new Uint8Array(16)));
     localStorage.setItem(SALT_KEY, JSON.stringify(saltArr));
@@ -480,8 +499,13 @@ async function encryptSession(passphrase, data) {
 }
 
 async function decryptSession(passphrase) {
-  const stored  = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-  const saltArr = JSON.parse(localStorage.getItem(SALT_KEY) || 'null');
+  let stored, saltArr;
+  try {
+    stored  = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    saltArr = JSON.parse(localStorage.getItem(SALT_KEY) || 'null');
+  } catch {
+    return null; // corrupted storage -> same as "no valid stored session"
+  }
   if (!stored || !saltArr) return null;
   try {
     const key  = await deriveKey(passphrase, new Uint8Array(saltArr));
@@ -553,13 +577,27 @@ async function exportProfile() {
     return;
   }
 
-  const profile = {
-    schema:   'squad-bat.veteran-profile.v1',
-    exported: new Date().toISOString().split('T')[0],
-    note:     'This file is encrypted. Your personal phrase is required to open it. Keep your phrase and this file separate.',
-    salt:     JSON.parse(saltRaw),
-    session:  JSON.parse(stored),   // contains { iv, ct } — useless without the passphrase
-  };
+  let profile;
+  try {
+    profile = {
+      schema:   'squad-bat.veteran-profile.v1',
+      exported: new Date().toISOString().split('T')[0],
+      note:     'This file is encrypted. Your personal phrase is required to open it. Keep your phrase and this file separate.',
+      salt:     JSON.parse(saltRaw),
+      session:  JSON.parse(stored),   // contains { iv, ct } — useless without the passphrase
+    };
+  } catch {
+    // Corrupted storage -- same failure mode decryptSession() now handles
+    // gracefully, but exportProfile() has no "phrase incorrect" screen to
+    // fall back to, so surface it directly.
+    const el = document.getElementById('export-profile-msg');
+    if (el) {
+      el.textContent = 'Your saved session looks corrupted and can\'t be exported. Try "Start fresh" to begin a new vault.';
+      el.classList.remove('hidden');
+      setTimeout(() => el.classList.add('hidden'), 6000);
+    }
+    return;
+  }
 
   const blob = new Blob([JSON.stringify(profile, null, 2)], { type: 'application/json' });
   const url  = URL.createObjectURL(blob);
