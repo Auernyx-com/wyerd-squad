@@ -1345,8 +1345,53 @@ function renderStep() {
     });
   }
 
-  document.getElementById('btn-back')?.addEventListener('click', () => { currentStep--; renderProgress(); renderStep(); });
+  // Independent-audit finding (2026-09-06), medium: this handler never
+  // walked past a skipped step the way advance()'s forward walk does --
+  // going Back from a later step could land directly on a step whose own
+  // skip(intake) evaluates true (e.g. a surviving-family respondent
+  // landing on "era", a step meant only for the veteran themself).
+  // Confirmed with a probe. Fixed with a symmetric backward walk.
+  document.getElementById('btn-back')?.addEventListener('click', () => {
+    const steps = activeSteps || STEPS;
+    currentStep = stepBackIndex(steps, currentStep, intake);
+    renderProgress();
+    renderStep();
+  });
   document.getElementById('btn-skip')?.addEventListener('click', advance);
+}
+
+// Independent-audit findings (2026-09-06), medium, both confirmed with a
+// probe against the real STEPS/GUIDED_STEPS skip predicates:
+//
+// 1. Going Back never re-checked skip() the way forward navigation does --
+//    it could land directly on a step meant to be skipped for the current
+//    intake (e.g. "era" for a surviving-family respondent).
+// 2. Re-answering an earlier gating question (service_status, va_history)
+//    never cleared fields belonging to steps that are now skipped. A
+//    veteran who answers discharge/branch/component/era, then goes Back
+//    and changes service_status to "surviving_family" (a value that skips
+//    all four of those steps), kept all four stale values in `intake` --
+//    submitted alongside "surviving_family", a self-contradictory profile
+//    (a Honorably-discharged Army enlisted post-9/11 veteran who is
+//    simultaneously a surviving family member). This is normal use ("wait,
+//    I need to redo this for my father"), not an attack.
+//
+// Both are pure functions over (steps, intake) so they're testable without
+// the DOM -- see tests/back-navigation-skip-gating.test.mjs.
+function stepBackIndex(steps, fromIndex, currentIntake) {
+  let i = fromIndex - 1;
+  while (i > 0 && steps[i] && steps[i].skip && steps[i].skip(currentIntake)) {
+    i--;
+  }
+  return i;
+}
+
+function clearFieldsForNowSkippedSteps(steps, targetIntake) {
+  for (const s of steps) {
+    if (s.skip && s.skip(targetIntake) && Object.prototype.hasOwnProperty.call(targetIntake, s.id)) {
+      delete targetIntake[s.id];
+    }
+  }
 }
 
 async function advance() {
@@ -1356,6 +1401,11 @@ async function advance() {
   if (step && step.guided && step.type === 'multi' && intake[step.id]) {
     applyGuidedSituation(intake[step.id]);
   }
+  // Clear any field whose step is now skipped given the answer just given
+  // (e.g. re-answering service_status to surviving_family/caregiver/
+  // active_duty must drop any already-answered discharge/branch/component/
+  // era -- see the finding above).
+  clearFieldsForNowSkippedSteps(steps, intake);
   await saveSession();
   currentStep++;
   // Skip steps that don't apply based on current intake answers
