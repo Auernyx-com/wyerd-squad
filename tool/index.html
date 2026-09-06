@@ -406,6 +406,13 @@
         <label for="fb-found"><strong>What did you actually find?</strong> Phone numbers that worked or didn't, office names, wait times, programs that exist or don't in your area.</label>
         <textarea id="fb-found" placeholder="e.g. Grand Junction VAMC benefits line is 970-263-5100, picked up same day. VSO office at 2460 Main is walk-in Tuesdays only."></textarea>
 
+        <label><strong>Have a specific number or address to correct?</strong> Put it here so it's easy to find — not buried in the notes above.</label>
+        <div class="input-stack" style="margin-bottom:16px;">
+          <input type="text" id="fb-org-name" placeholder="Organization or office name (e.g. Grand Junction VAMC)" />
+          <input type="tel" id="fb-phone" placeholder="Corrected phone number" />
+          <input type="text" id="fb-address" placeholder="Corrected address" />
+        </div>
+
         <label for="fb-missing"><strong>What was missing that would have helped you?</strong></label>
         <textarea id="fb-missing" placeholder="e.g. No info on the SSVF office in Mesa County. Didn't know I needed to bring a buddy statement."></textarea>
 
@@ -1609,8 +1616,11 @@ document.getElementById('feedback-submit').addEventListener('click', async () =>
   const what_was_missing = document.getElementById('fb-missing').value.trim();
   const experience = document.getElementById('fb-experience').value.trim();
   const complaint = document.getElementById('fb-complaint').value.trim();
+  const org_name = document.getElementById('fb-org-name').value.trim();
+  const phone = document.getElementById('fb-phone').value.trim();
+  const address = document.getElementById('fb-address').value.trim();
 
-  if (!contact_worked && !what_you_found && !what_was_missing && !experience && !complaint) {
+  if (!contact_worked && !what_you_found && !what_was_missing && !experience && !complaint && !org_name && !phone && !address) {
     const err = document.getElementById('feedback-error');
     err.textContent = 'Please fill in at least one field before submitting.';
     err.style.display = 'block';
@@ -1627,6 +1637,9 @@ document.getElementById('feedback-submit').addEventListener('click', async () =>
     what_was_missing: what_was_missing || null,
     experience: experience || null,
     complaint: complaint || null,
+    org_name: org_name || null,
+    phone: phone || null,
+    address: address || null,
     state: intake?.location?.state || null,
     county: intake?.location?.county || null,
     need_area: intake?.need ? (Array.isArray(intake.need) ? intake.need.join(', ') : intake.need) : null,
