@@ -1134,31 +1134,44 @@ async function saveSession() {
 
 // ── Returning veteran — diff screen ──────────────────────────────────────────
 
+// Independent-audit finding (2026-09-06, round 4, medium): these four maps
+// were written against an older/different value vocabulary and never
+// updated when STEPS' real option values were set (or renamed) --
+// _diffLabel()'s fallback-to-raw-value meant real current values (e.g.
+// 'marines', 'general_uhc', 'activated', 'unsheltered') rendered as raw
+// internal slugs (or, for a multi-select field like branch, the raw array
+// itself) on the diff screen instead of plain-language labels. Rewritten
+// to key off STEPS' actual current option values.
 const _DIFF_LABELS = {
   branch: {
-    marine_corps: 'Marine Corps', army: 'Army', navy: 'Navy',
-    air_force: 'Air Force', coast_guard: 'Coast Guard',
-    army_national_guard: 'Army National Guard',
-    air_national_guard: 'Air National Guard',
+    army: 'Army', navy: 'Navy', marines: 'Marine Corps',
+    air_force: 'Air Force', space_force: 'Space Force', coast_guard: 'Coast Guard',
+    army_ng: 'Army National Guard', army_reserve: 'Army Reserve',
+    air_ng: 'Air National Guard', af_reserve: 'Air Force Reserve',
+    navy_reserve: 'Navy Reserve', usmc_reserve: 'Marine Corps Reserve',
+    uscg_reserve: 'Coast Guard Reserve',
   },
   discharge: {
     honorable: 'Honorable',
-    general: 'General Under Honorable Conditions',
-    other_than_honorable: 'Other Than Honorable (OTH)',
+    general_uhc: 'General — Under Honorable Conditions',
+    oth: 'Other Than Honorable (OTH)',
+    bcd: 'Bad Conduct Discharge (BCD)',
     dishonorable: 'Dishonorable',
-    medical: 'Medical discharge / retirement',
     entry_level: 'Entry Level Separation',
-    bcd: 'Bad Conduct Discharge',
+    medical: 'Medical discharge / retirement',
     unknown: 'Discharge status unknown',
   },
   service_status: {
-    veteran: 'Veteran (separated)', active: 'Active duty',
-    reserve: 'Reserve / Guard', retired: 'Retired military',
-    dependent: 'Dependent / family member', not_sure: 'Not sure',
+    veteran: 'Veteran (separated)', active_duty: 'Active duty',
+    reserve_guard: 'Reserve or National Guard',
+    activated: 'Reserve/Guard — currently activated',
+    surviving_family: 'Surviving family member',
+    caregiver: 'Caregiver for a veteran', not_sure: 'Not sure',
   },
   housing_status: {
-    unhoused: 'Currently unhoused', unstable: 'Housing unstable',
-    at_risk: 'Housing at risk', stable: 'Housing stable',
+    unsheltered: 'Currently unhoused', car: 'Living in a vehicle',
+    shelter: 'In a shelter', couch: 'Couch surfing',
+    unstable_housed: 'Housing at risk', stable: 'Housing stable',
   },
   va_history: {
     never: 'Never contacted the VA',
@@ -1177,6 +1190,15 @@ const _DIFF_LABELS = {
 
 function _diffLabel(map, val) {
   if (!val || val === 'unknown') return null;
+  // branch is multi-select (an array). A single-element array happened to
+  // coerce to a working object key by accident (JS stringifies ['marines']
+  // to 'marines'), but two or more selections coerced to 'army,navy' -- not
+  // a key in any map -- and fell through to displaying the raw array.
+  // Map each element individually instead of relying on that coercion.
+  if (Array.isArray(val)) {
+    if (!val.length) return null;
+    return val.map((v) => map[v] || v).join(', ');
+  }
   return map[val] || val;
 }
 
@@ -1211,7 +1233,12 @@ function buildIntakeSummary(data) {
     rows.push(['Legal', cc]);
   }
 
-  if (data.va_facility_obstruction || data.va_facility_issues) {
+  // Independent-audit finding (2026-09-06, round 4, high): this was a
+  // truthiness test, not a value test -- va_facility_issues' "no problem"
+  // answer is the JS string 'no', which is truthy. A veteran who explicitly
+  // said "No issues with the facility" was shown "Issues / complaints on
+  // file" on the one screen whose purpose is confirming their own record.
+  if (data.va_facility_obstruction || (data.va_facility_issues && data.va_facility_issues !== 'no')) {
     rows.push(['VA facility', 'Issues / complaints on file']);
   }
 
