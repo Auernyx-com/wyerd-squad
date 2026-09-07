@@ -104,7 +104,11 @@
     .result-block { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 8px; padding: 20px 22px; margin-bottom: 12px; }
     .result-block.primary { border-color: var(--teal-dim); background: #122030; }
     .result-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); font-family: var(--mono); margin-bottom: 8px; }
-    .result-content { font-size: 14px; color: var(--text); line-height: 1.75; white-space: pre-wrap; }
+    /* Independent-audit finding (2026-09-07, round 7, low): unlike the
+       visually-identical .msg-body class, this had no word-break -- a long
+       unbroken token (a URL, a case number) in AI-generated results text
+       could overflow its container on mobile. */
+    .result-content { font-size: 14px; color: var(--text); line-height: 1.75; white-space: pre-wrap; word-break: break-word; }
     .result-content strong { color: var(--teal-lit); display: block; margin-top: 12px; margin-bottom: 2px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; font-family: var(--mono); }
     .result-content strong:first-child { margin-top: 0; }
 
@@ -353,12 +357,18 @@
         <textarea id="strip-missing" placeholder="What did we miss? Wrong number, missing program, gap in your area — anything helps." rows="2"></textarea>
         <div class="strip-actions">
           <button class="btn btn-primary" id="strip-submit">Send</button>
-          <button class="link-btn" id="open-feedback-btn" style="font-size:13px;">File a detailed report →</button>
         </div>
         <div id="strip-error" class="inline-error" style="display:none;margin-top:8px;"></div>
         <div class="strip-note">Anonymous. Only what you type here is sent. Location and need area added from your intake if provided.</div>
       </div>
       <div id="strip-success" class="strip-success hidden">Received. Thank you — this goes directly into building the next branch.</div>
+      <!-- Independent-audit finding (2026-09-07, round 7, medium): this link
+           used to live inside #strip-form, which gets hidden after a
+           successful quick vote (see the strip-submit handler below) --
+           a veteran who quick-voted lost the only path to file a detailed
+           report for that results view. Moved outside #strip-form so it
+           stays visible in both the quick-vote and post-vote states. -->
+      <button class="link-btn" id="open-feedback-btn" style="font-size:13px;margin-top:12px;">File a detailed report →</button>
     </div>
 
     <hr />
@@ -407,10 +417,17 @@
         <textarea id="fb-found" placeholder="e.g. Grand Junction VAMC benefits line is 970-263-5100, picked up same day. VSO office at 2460 Main is walk-in Tuesdays only."></textarea>
 
         <label><strong>Have a specific number or address to correct?</strong> Put it here so it's easy to find — not buried in the notes above.</label>
+        <!-- Independent-audit finding (2026-09-07, round 7, unconfirmed/
+             suspicious): these fields ask for a THIRD PARTY's (an org's)
+             corrected contact info, not the veteran's own -- with no
+             autocomplete="off", a browser could plausibly autofill the
+             veteran's own saved name/phone/address into them instead.
+             Light defensive addition; browser autofill behavior itself
+             couldn't be verified in this environment. -->
         <div class="input-stack" style="margin-bottom:16px;">
-          <input type="text" id="fb-org-name" placeholder="Organization or office name (e.g. Grand Junction VAMC)" />
-          <input type="tel" id="fb-phone" placeholder="Corrected phone number" />
-          <input type="text" id="fb-address" placeholder="Corrected address" />
+          <input type="text" id="fb-org-name" placeholder="Organization or office name (e.g. Grand Junction VAMC)" autocomplete="off" />
+          <input type="tel" id="fb-phone" placeholder="Corrected phone number" autocomplete="off" />
+          <input type="text" id="fb-address" placeholder="Corrected address" autocomplete="off" />
         </div>
 
         <label for="fb-missing"><strong>What was missing that would have helped you?</strong></label>
@@ -1221,7 +1238,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // situation" (a new, unrelated case -- e.g. helping a different family
     // member) still had is_returning: true sent on the brand-new intake
     // that followed, left over from before they clicked this button.
-    intake = {}; chatHistory = []; currentStep = 0; savedResults = null; isReturning = false;
+    // Independent-audit finding (2026-09-07, round 7, low): chatHistory was
+    // reset here but chatHistoryTruncationNoticeShown was not, so a long
+    // second conversation after "start over" never got the one-time
+    // "Pathfinder can only see recent messages" notice -- it had already
+    // fired once in the prior conversation and the flag never came back.
+    // Same reset pairing already used in submitIntake()'s new-results path.
+    intake = {}; chatHistory = []; chatHistoryTruncationNoticeShown = false; currentStep = 0; savedResults = null; isReturning = false;
     hide('results-section');
     document.getElementById('thread').innerHTML = '';
     document.getElementById('results-content').innerHTML = '';
@@ -1920,7 +1943,23 @@ async function sendChat() {
 
 // ── Feedback modal ────────────────────────────────────────────────────────────
 
+// Independent-audit finding (2026-09-07, round 7, medium): the modal never
+// reset its own fields (radios, textareas, org/phone/address) on close or
+// reopen -- an abandoned draft's text, including a corrected-organization
+// complaint, silently persisted into the next, unrelated submission.
+// Reset on open so every fresh modal session starts clean regardless of
+// how the previous one ended (submitted, canceled, or closed via ✕/overlay).
+function resetFeedbackForm() {
+  document.querySelectorAll('#feedback-form-wrap input[type="radio"]').forEach(r => { r.checked = false; });
+  document.querySelectorAll('#feedback-form-wrap textarea').forEach(t => { t.value = ''; });
+  ['fb-org-name', 'fb-phone', 'fb-address'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
 function openFeedback() {
+  resetFeedbackForm();
   document.getElementById('feedback-modal').classList.remove('hidden');
   document.getElementById('feedback-form-wrap').classList.remove('hidden');
   document.getElementById('feedback-success-wrap').classList.add('hidden');
