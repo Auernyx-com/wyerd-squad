@@ -1501,7 +1501,6 @@ async function advance() {
   // active_duty must drop any already-answered discharge/branch/component/
   // era -- see the finding above).
   clearFieldsForNowSkippedSteps(steps, intake);
-  await saveSession();
   currentStep++;
   // Skip steps that don't apply based on current intake answers
   while (currentStep < steps.length && steps[currentStep].skip && steps[currentStep].skip(intake)) {
@@ -1510,6 +1509,14 @@ async function advance() {
   if (currentStep >= steps.length) {
     submitIntake();
   } else {
+    // Independent-audit finding (2026-09-06, round 4, low): this used to
+    // save BEFORE currentStep++, so resuming a saved session always
+    // re-rendered the question just answered (no "already answered"
+    // indication on single-select steps). Moved after the increment/skip
+    // walk so the saved index is the next unanswered step. submitIntake()
+    // (the branch above) already saves its own session with the completed
+    // index -- unchanged by this move.
+    await saveSession();
     renderProgress();
     renderStep();
   }
