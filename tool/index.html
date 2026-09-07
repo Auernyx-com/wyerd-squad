@@ -1729,6 +1729,14 @@ const _COVERAGE_REGIONS = {
 // matches "grand".
 function _normalizeCountyForCoverageMatch(raw) {
   let c = (raw || '').toLowerCase().trim();
+  // Independent-audit finding (2026-09-08, round 6, medium): this only
+  // trimmed leading/trailing whitespace -- it never collapsed repeated/
+  // irregular internal whitespace within a multi-word county name, so a
+  // veteran who typed an extra space in a real, confirmed-covered county
+  // (e.g. "San  Miguel") fell through the exact-match check below and was
+  // shown the "not yet confirmed" coverage-gap disclaimer for a county
+  // that IS covered. Collapsed before suffix-stripping.
+  c = c.replace(/\s+/g, ' ');
   c = c.replace(/\s+county$/, '').replace(/\s+co\.?$/, '').trim();
   return c;
 }
