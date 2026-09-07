@@ -1104,7 +1104,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('start-over-btn').addEventListener('click', () => {
     if (!confirm('Start over? This will clear your current results and intake.')) return;
     clearSession();
-    intake = {}; chatHistory = []; currentStep = 0; savedResults = null;
+    // Independent-audit finding (2026-09-06, round 4, medium): isReturning
+    // was never reset here, so a veteran who started over "for a different
+    // situation" (a new, unrelated case -- e.g. helping a different family
+    // member) still had is_returning: true sent on the brand-new intake
+    // that followed, left over from before they clicked this button.
+    intake = {}; chatHistory = []; currentStep = 0; savedResults = null; isReturning = false;
     hide('results-section');
     document.getElementById('thread').innerHTML = '';
     document.getElementById('results-content').innerHTML = '';
