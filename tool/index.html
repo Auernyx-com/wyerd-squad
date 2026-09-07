@@ -1129,7 +1129,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function saveSession() {
   if (!vaultPass) return;
-  await encryptSession(vaultPass, { currentStep, intake, savedResults, chatHistory });
+  // Independent-audit finding (2026-09-06, round 4, high): which step array
+  // was active (STEPS vs. GUIDED_STEPS) was never persisted here. On any
+  // resume, activeSteps was still its module-default null, and every
+  // consumer's `activeSteps || STEPS` fallback silently switched a
+  // guided-mode veteran onto the direct-mode question set. Persist a mode
+  // marker so restoreSession() can put the right array back.
+  const mode = activeSteps === GUIDED_STEPS ? 'guided' : 'direct';
+  await encryptSession(vaultPass, { mode, currentStep, intake, savedResults, chatHistory });
 }
 
 // ── Returning veteran — diff screen ──────────────────────────────────────────
@@ -1258,6 +1265,14 @@ function showDiffScreen(session) {
 let isReturning = false;
 
 function restoreSession(session) {
+  // Independent-audit finding (2026-09-06, round 4, high): activeSteps was
+  // never restored here, so it stayed null on a fresh page load and every
+  // renderer fell back to STEPS regardless of which mode was actually in
+  // progress. Sessions saved before this fix never recorded a mode -- there
+  // is no way to recover which array those were actually answered against,
+  // so they default to STEPS (direct mode), matching this function's own
+  // prior (buggy) fallback behavior for anyone already mid-session.
+  activeSteps  = session.mode === 'guided' ? GUIDED_STEPS : STEPS;
   currentStep  = session.currentStep  || 0;
   intake       = session.intake       || {};
   savedResults = session.savedResults || null;
