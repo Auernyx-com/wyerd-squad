@@ -1526,9 +1526,25 @@ const _COVERAGE_REGIONS = {
   },
 };
 
+// Independent-audit finding (2026-09-06), round 3, high: getCoverageNote()
+// used to match a veteran-typed county with `county.includes(c)` -- a
+// substring containment check. "Rio Grande" (a real, distinct CO county,
+// genuinely uncovered) contains the Western Slope region's "grand" entry
+// as a literal substring, so a Rio Grande veteran was told they had
+// confirmed local coverage. Fixed by normalizing a trailing "county"/
+// "co."/"co" suffix (same pattern SQUAD's own local_resources.py already
+// uses) and requiring an EXACT match -- "mesa county" still matches
+// "mesa" after suffix-stripping, but "rio grande" no longer spuriously
+// matches "grand".
+function _normalizeCountyForCoverageMatch(raw) {
+  let c = (raw || '').toLowerCase().trim();
+  c = c.replace(/\s+county$/, '').replace(/\s+co\.?$/, '').trim();
+  return c;
+}
+
 function getCoverageNote(intakeData) {
   const state  = (intakeData?.location?.state  || intakeData?.state  || '').toUpperCase().trim();
-  const county = (intakeData?.location?.county || intakeData?.county || '').toLowerCase().trim();
+  const county = _normalizeCountyForCoverageMatch(intakeData?.location?.county || intakeData?.county || '');
 
   if (!state) {
     return 'No location provided. Pathfinder is returning national VA contacts only. For local VSO offices, county-specific housing contacts, and region-specific programs, run again with your state and county.';
@@ -1536,7 +1552,7 @@ function getCoverageNote(intakeData) {
 
   // Check deep regional coverage (county-verified)
   for (const region of Object.values(_COVERAGE_REGIONS)) {
-    if (region.state === state && region.counties.some(c => county.includes(c))) {
+    if (region.state === state && region.counties.some(c => county === c)) {
       return null; // Fully covered — confirmed local data
     }
   }
