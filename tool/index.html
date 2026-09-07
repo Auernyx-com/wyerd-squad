@@ -1461,9 +1461,18 @@ function renderStep() {
     ${step.sub ? `<div class="card-sub">${step.sub}</div>` : ''}`;
 
   if (step.type === 'single') {
+    // Independent-audit finding (2026-09-08, round 6, low-medium):
+    // single-select steps never applied a `selected` class to a
+    // previously-recorded answer, unlike multi-select (below). A veteran
+    // who went Back to check what they'd already answered on a gating
+    // question saw every option looking equally unanswered -- combined
+    // with the cascading clear on re-answer, clicking an option just to
+    // check/confirm it could silently overwrite an already-answered
+    // gating field and cascade-wipe downstream answers with no warning.
+    const curSingle = intake[step.id];
     html += `<div class="options">`;
     step.options.forEach(opt => {
-      html += `<button class="opt" data-value="${opt.value}">
+      html += `<button class="opt${curSingle === opt.value ? ' selected' : ''}" data-value="${opt.value}">
         ${opt.icon ? `<span class="opt-icon">${opt.icon}</span>` : ''}
         <span class="opt-body">
           <span class="opt-label">${opt.label}</span>
@@ -1535,13 +1544,33 @@ function renderStep() {
       });
     });
   } else if (step.type === 'multi') {
-    container.querySelectorAll('.opt').forEach(btn => {
+    const allOptBtns = container.querySelectorAll('.opt');
+    allOptBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         if (!Array.isArray(intake[step.id])) intake[step.id] = [];
         const v = btn.dataset.value;
         const idx = intake[step.id].indexOf(v);
-        if (idx >= 0) intake[step.id].splice(idx, 1); else intake[step.id].push(v);
-        btn.classList.toggle('selected', intake[step.id].includes(v));
+        if (idx >= 0) {
+          intake[step.id].splice(idx, 1);
+        } else {
+          // Independent-audit finding (2026-09-08, round 6, low):
+          // "None of the above" allowed selecting a specific program
+          // (or any other option) at the same time -- no mutual-
+          // exclusivity handling existed. Applies generically to any
+          // multi-select step that offers a "none" option, not just
+          // current_programs.
+          if (v === 'none') {
+            intake[step.id].length = 0;
+          } else {
+            const noneIdx = intake[step.id].indexOf('none');
+            if (noneIdx >= 0) intake[step.id].splice(noneIdx, 1);
+          }
+          intake[step.id].push(v);
+        }
+        // Re-sync every button's visual state (not just the one clicked) --
+        // required so mutual-exclusivity above is reflected correctly, not
+        // just the array.
+        allOptBtns.forEach(b => b.classList.toggle('selected', intake[step.id].includes(b.dataset.value)));
         document.getElementById('btn-next').disabled = intake[step.id].length === 0;
       });
     });
