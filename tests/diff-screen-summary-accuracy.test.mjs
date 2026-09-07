@@ -72,10 +72,12 @@ function rowFor(rows, label) {
   const rows = buildIntakeSummary({ va_facility_issues: 'complaints' });
   check('va_facility_issues="complaints" DOES produce a "VA facility" row', rowFor(rows, 'VA facility'), 'Issues / complaints on file');
 }
-{
-  const rows = buildIntakeSummary({ va_facility_obstruction: true, va_facility_issues: 'no' });
-  check('va_facility_obstruction=true still produces the row regardless of va_facility_issues (no regression)', rowFor(rows, 'VA facility'), 'Issues / complaints on file');
-}
+// Independent-audit finding (2026-09-07, round 5, low): the
+// va_facility_obstruction field this test previously exercised was
+// confirmed dead code -- no STEPS or GUIDED_STEPS question ever writes it
+// into `intake` (grepped the whole file). It was removed from
+// buildIntakeSummary() as part of that fix; this "no regression" case no
+// longer applies to a field that can never actually be set.
 
 // --- Finding 2: _DIFF_LABELS must resolve real, current STEPS values ------
 {

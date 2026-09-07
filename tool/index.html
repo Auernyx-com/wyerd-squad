@@ -1227,10 +1227,7 @@ function buildIntakeSummary(data) {
   if (status) rows.push(['Status', status]);
 
   const hs = _diffLabel(_DIFF_LABELS.housing_status, data.housing_status);
-  if (hs) {
-    const chronic = data.is_chronically_homeless ? ' — 6+ months (chronic)' : '';
-    rows.push(['Housing', hs + chronic]);
-  }
+  if (hs) rows.push(['Housing', hs]);
 
   const vaHist = _diffLabel(_DIFF_LABELS.va_history, data.va_history);
   if (vaHist) rows.push(['VA history', vaHist]);
@@ -1238,19 +1235,20 @@ function buildIntakeSummary(data) {
   const rating = _diffLabel(_DIFF_LABELS.disability_rating, data.disability_rating);
   if (rating) rows.push(['Disability rating', rating]);
 
-  if (data.active_criminal_case) {
-    let cc = 'Active criminal case';
-    if (data.criminal_case_type) cc += ` (${data.criminal_case_type.toUpperCase()})`;
-    if (data.claiming_self_defense) cc += ' — self-defense claim';
-    rows.push(['Legal', cc]);
-  }
-
   // Independent-audit finding (2026-09-06, round 4, high): this was a
   // truthiness test, not a value test -- va_facility_issues' "no problem"
   // answer is the JS string 'no', which is truthy. A veteran who explicitly
   // said "No issues with the facility" was shown "Issues / complaints on
   // file" on the one screen whose purpose is confirming their own record.
-  if (data.va_facility_obstruction || (data.va_facility_issues && data.va_facility_issues !== 'no')) {
+  //
+  // Independent-audit finding (2026-09-07, round 5, low): a chronic-
+  // homelessness suffix and an "Active criminal case" row used to sit
+  // above this, referencing five fields that no STEPS or GUIDED_STEPS
+  // question ever writes into `intake`. Since `intake` is entirely
+  // client-constructed from the step arrays, those branches could never
+  // render under any current input. Removed as dead code; kept the one
+  // field below that real questions actually populate.
+  if (data.va_facility_issues && data.va_facility_issues !== 'no') {
     rows.push(['VA facility', 'Issues / complaints on file']);
   }
 
@@ -1655,7 +1653,11 @@ function showErrorResult(msg) {
     </div>`;
 }
 
-function showResults(text, isRestore = false) {
+// Independent-audit finding (2026-09-07, round 5, low): the isRestore
+// parameter this function used to declare was never referenced anywhere in
+// its body and had exactly one call site, which never passed it -- dead
+// signature cruft implying a restore-vs-fresh code path that didn't exist.
+function showResults(text) {
   show('results-section');
   const sections = text.split(/(?=\*\*[A-Z][A-Z\s\/]+\*\*)/);
   let html = '';
