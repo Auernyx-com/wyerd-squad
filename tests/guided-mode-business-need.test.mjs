@@ -32,7 +32,7 @@ const end = src.indexOf('// ── Vault flow');
 if (start === -1 || end === -1) {
   throw new Error('Could not locate GUIDED_STEPS/applyGuidedSituation in tool/index.html -- did it move or get renamed?');
 }
-const moduleSrc = `let intake = {};\n${src.slice(start, end)}\nexport { GUIDED_STEPS, applyGuidedSituation, intake };\n`;
+const moduleSrc = `let intake = {};\nlet urgencyAutoSetByGuidedCrisis = false;\n${src.slice(start, end)}\nexport { GUIDED_STEPS, applyGuidedSituation, intake };\n`;
 const moduleUrl = `data:text/javascript,${encodeURIComponent(moduleSrc)}`;
 const { GUIDED_STEPS, applyGuidedSituation } = await import(moduleUrl);
 
@@ -47,7 +47,7 @@ function check(description, actual, expected) {
 // between checks -- the data: URL is cached by content, so give each
 // call its own mutable intake via a small wrapper module instead.
 async function runGuidedSituation(values) {
-  const wrapperSrc = `let intake = {};\n${src.slice(start, end)}\napplyGuidedSituation(${JSON.stringify(values)});\nexport default intake;\n`;
+  const wrapperSrc = `let intake = {};\nlet urgencyAutoSetByGuidedCrisis = false;\n${src.slice(start, end)}\napplyGuidedSituation(${JSON.stringify(values)});\nexport default intake;\n`;
   const wrapperUrl = `data:text/javascript,${encodeURIComponent(wrapperSrc)}`;
   const mod = await import(wrapperUrl);
   return mod.default;

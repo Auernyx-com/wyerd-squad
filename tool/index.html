@@ -636,6 +636,12 @@ let vaultPass    = null;
 let savedResults = null;
 let activeSteps  = null; // set at mode select
 let stripVote    = null; // inline feedback strip vote
+// Independent-audit finding (2026-09-08, round 6, medium): tracks whether
+// the CURRENT intake.urgency value was auto-set by applyGuidedSituation()
+// because "crisis" was selected, as opposed to a genuine manual answer to
+// the real urgency question. Lets deselecting crisis clear the stale
+// auto-set value without ever wiping a real manual answer.
+let urgencyAutoSetByGuidedCrisis = false;
 
 // ── Intake steps ──────────────────────────────────────────────────────────────
 
@@ -1072,9 +1078,27 @@ function applyGuidedSituation(values) {
   arr.forEach(v => {
     const mapped = map[v] || { need: [] };
     mapped.need.forEach(n => needSet.add(n));
-    if (mapped.urgency) intake.urgency = mapped.urgency;
   });
   intake.need = [...needSet];
+
+  // Independent-audit finding (2026-09-08, round 6, medium): this used to
+  // only ever SET intake.urgency when crisis was selected, never clear it
+  // when crisis was later deselected -- urgency has no `skip` predicate (it's
+  // always asked, at the end of the wizard) so clearFieldsForNowSkippedSteps()
+  // can't reach it. A veteran who selected crisis, then went back and
+  // deselected it, kept a stale urgency: 'tonight' all the way to
+  // submission even after explicitly saying they're not in crisis anymore.
+  // Only clears a value THIS function set (tracked via
+  // urgencyAutoSetByGuidedCrisis, reset on a real manual answer to the
+  // urgency question -- see renderStep()'s single-select click handler) so
+  // a genuine manual "tonight" answer is never silently wiped.
+  if (arr.includes('crisis')) {
+    intake.urgency = 'tonight';
+    urgencyAutoSetByGuidedCrisis = true;
+  } else if (urgencyAutoSetByGuidedCrisis) {
+    delete intake.urgency;
+    urgencyAutoSetByGuidedCrisis = false;
+  }
 }
 
 // ── Vault flow ────────────────────────────────────────────────────────────────
@@ -1502,6 +1526,11 @@ function renderStep() {
     container.querySelectorAll('.opt').forEach(btn => {
       btn.addEventListener('click', () => {
         intake[step.id] = btn.dataset.value;
+        // A real, manual answer to the urgency question is authoritative --
+        // it must never be silently overwritten/cleared later by an
+        // unrelated guided_situation re-submission (see
+        // urgencyAutoSetByGuidedCrisis above).
+        if (step.id === 'urgency') urgencyAutoSetByGuidedCrisis = false;
         advance();
       });
     });
