@@ -64,6 +64,24 @@ check('El Paso, CO (real Front Range county) is still covered', isFullyCovered('
 check('an uncovered state shows a gap note, not null', getCoverageNote({ state: 'WY', county: 'Laramie' }) !== null, true);
 check('no location at all shows the national-only note', getCoverageNote({}) !== null, true);
 
+// Independent-audit finding (2026-09-08, round 6, medium):
+// _normalizeCountyForCoverageMatch() only trims leading/trailing
+// whitespace -- it never collapsed repeated/irregular internal
+// whitespace within a multi-word county name. A veteran who fat-fingers
+// an extra space in a real, confirmed-covered multi-word county (San
+// Miguel, Rio Blanco -- both genuinely covered Western Slope counties)
+// was shown the "not yet confirmed" coverage-gap disclaimer instead of
+// clean, confirmed guidance -- same failure class as the Rio Grande fix
+// above, opposite direction (false negative, not false positive).
+// Confirmed directly before this fix: isFullyCovered('CO', 'San Miguel')
+// was true, isFullyCovered('CO', 'San  Miguel') (double internal space)
+// was false.
+check('San Miguel, CO (single space) is covered', isFullyCovered('CO', 'San Miguel'), true);
+check('San  Miguel, CO (double internal space) is STILL covered', isFullyCovered('CO', 'San  Miguel'), true);
+check('Rio Blanco, CO (single space) is covered', isFullyCovered('CO', 'Rio Blanco'), true);
+check('Rio   Blanco, CO (triple internal space) is STILL covered', isFullyCovered('CO', 'Rio   Blanco'), true);
+check('a tab character between words is STILL covered', isFullyCovered('CO', 'San\tMiguel'), true);
+
 if (failures > 0) {
   console.error(`\n${failures} check(s) failed.`);
   process.exit(1);
