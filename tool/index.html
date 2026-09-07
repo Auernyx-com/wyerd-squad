@@ -1813,7 +1813,15 @@ async function sendChat() {
     const data = await res.json();
     thinking.remove();
 
-    if (!res.ok || data.error) { addMsg('pf', data.error || 'Something went wrong.', 'error'); }
+    if (!res.ok || data.error) {
+      addMsg('pf', data.error || 'Something went wrong.', 'error');
+      // Independent-audit finding (2026-09-08, round 6, medium): the user
+      // turn pushed above (before the fetch) was never removed on a
+      // backend error -- it silently rode along as unanswered "history"
+      // context on the next message. Pop it back out; the veteran sees
+      // the error and correctly assumes nothing was sent.
+      chatHistory.pop();
+    }
     else {
       addMsg('pf', data.response);
       chatHistory.push({ role: 'assistant', content: data.response });
@@ -1831,7 +1839,13 @@ async function sendChat() {
       }
       await saveSession();
     }
-  } catch { thinking.remove(); addMsg('pf', 'Could not reach Pathfinder. Check your connection.', 'error'); }
+  } catch {
+    thinking.remove();
+    addMsg('pf', 'Could not reach Pathfinder. Check your connection.', 'error');
+    // Same fix as the backend-error branch above -- a network failure must
+    // not leave an orphaned, unanswered user turn in chatHistory either.
+    chatHistory.pop();
+  }
 
   chatBusy = false;
   document.getElementById('chat-send').disabled = false;
