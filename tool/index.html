@@ -540,7 +540,15 @@ async function importProfile(file) {
       showErr('This doesn\'t look like a Pathfinder profile — check you selected the right file.');
       return;
     }
-    if (!data.salt || !data.session || !data.session.iv || !data.session.ct) {
+    // Independent-audit finding (2026-09-07, round 5, low): `!data.salt`
+    // etc. only guards absence -- an empty array is truthy in JS (`![]`
+    // is false), so a shape-valid-but-empty salt/iv/ct silently passed
+    // this check. Checking length catches it here, with a clear message,
+    // instead of surfacing as the same ambiguous "phrase is incorrect" at
+    // unlock time.
+    const isNonEmptyArray = (v) => Array.isArray(v) && v.length > 0;
+    if (!isNonEmptyArray(data.salt) || !data.session ||
+        !isNonEmptyArray(data.session.iv) || !isNonEmptyArray(data.session.ct)) {
       showErr('Profile file is incomplete or damaged. Try exporting a fresh copy from your other device.');
       return;
     }
@@ -1055,7 +1063,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!pass) { err.textContent = 'Enter your phrase.'; err.classList.remove('hidden'); return; }
 
     const session = await decryptSession(pass);
-    if (!session) { err.textContent = 'Phrase is incorrect. Check your phrase and try again.'; err.classList.remove('hidden'); return; }
+    // Independent-audit finding (2026-09-07, round 5, low): AES-GCM's
+    // auth tag makes a wrong passphrase and a tampered/corrupted file
+    // cryptographically indistinguishable at this point (both fail
+    // closed the same way, by design -- that's correct, not a bug to
+    // "fix" by weakening the check). But the old message named only one
+    // of the two real causes, leaving a veteran who's certain their
+    // phrase is right with no idea a damaged file is even possible.
+    if (!session) { err.textContent = 'Phrase is incorrect, or this file may be damaged. Double-check your phrase, or try exporting a fresh copy from your other device.'; err.classList.remove('hidden'); return; }
 
     vaultPass = pass;
     restoreSession(session);
