@@ -616,6 +616,14 @@ let currentStep  = 0;
 let intake       = {};
 let chatHistory  = [];
 let chatBusy     = false;
+// Independent-audit finding (2026-09-06), medium: chatHistory is silently
+// truncated to the last 20 entries for what's sent to /chat, while the
+// visible #thread keeps growing unbounded with no cap and no notice -- a
+// long conversation's early context silently drops from the model's view
+// with nothing on screen telling the veteran that happened. This flag
+// tracks whether the one-time in-thread notice has already been shown for
+// the current conversation (reset alongside chatHistory).
+let chatHistoryTruncationNoticeShown = false;
 let vaultPass    = null;
 let savedResults = null;
 let activeSteps  = null; // set at mode select
@@ -1475,6 +1483,18 @@ async function submitIntake() {
     hide('loading-section');
     if (!res.ok || data.error) { showErrorResult(data.error || 'Something went wrong. Refresh and try again.'); return; }
     savedResults = data.response;
+    // Independent-audit finding (2026-09-06), high: restoreSession() puts a
+    // prior session's chatHistory into memory, but nothing ever repopulates
+    // the #thread DOM from it (it starts empty on every fresh page load
+    // either way) -- there is no button in this app that shows old
+    // results/chat as-is (the diff screen only offers "update my info" or
+    // "run it", the latter always landing here with a NEW response). Old,
+    // invisible conversation content from a prior session was silently
+    // carried into the new results view and forwarded to /chat on the next
+    // message. A newly generated results set starts a new conversation,
+    // matching what's actually visible on screen.
+    chatHistory = [];
+    chatHistoryTruncationNoticeShown = false;
     await saveSession();
     showResults(data.response);
   } catch {
@@ -1635,7 +1655,18 @@ async function sendChat() {
     else {
       addMsg('pf', data.response);
       chatHistory.push({ role: 'assistant', content: data.response });
-      if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
+      if (chatHistory.length > 20) {
+        chatHistory = chatHistory.slice(-20);
+        // Independent-audit finding (2026-09-06), medium: this used to
+        // truncate silently -- the visible thread kept growing with no
+        // indication that Pathfinder had stopped seeing the earlier part
+        // of the conversation. Shown once per conversation, not on every
+        // subsequent message past the cap.
+        if (!chatHistoryTruncationNoticeShown) {
+          addMsg('pf', "This conversation has gotten long — Pathfinder can only see your most recent messages from here. If something important came up earlier, it may help to repeat it.", 'notice');
+          chatHistoryTruncationNoticeShown = true;
+        }
+      }
       await saveSession();
     }
   } catch { thinking.remove(); addMsg('pf', 'Could not reach Pathfinder. Check your connection.', 'error'); }
