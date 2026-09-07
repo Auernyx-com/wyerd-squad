@@ -751,6 +751,24 @@ const STEPS = [
     ],
   },
   {
+    // Independent-audit finding (2026-09-07, round 5, medium): this
+    // question exists in guided mode (GUIDED_STEPS) but had no
+    // direct-mode equivalent at all -- a direct-mode veteran was never
+    // asked about VA facility obstruction, even though buildIntakeSummary()
+    // and the diff screen are written to display it. Added here, matching
+    // the guided version's id/options/skip condition exactly.
+    id: 'va_facility_issues', question: "Have you had problems with your local VA facility?",
+    sub: "If the VA itself has been a barrier — complaints filed, care denied, or you feel the facility has worked against you — that changes the routing significantly.",
+    type: 'single',
+    skip: (i) => i.va_history === 'never',
+    options: [
+      { value: 'no',           label: 'No issues with the facility',                       desc: 'My experience with the local VA has been okay', icon: '✅' },
+      { value: 'complaints',   label: 'I have filed or want to file complaints',            desc: 'Specific incidents — care denied, mistreated, ignored', icon: '📋' },
+      { value: 'obstruction',  label: 'The facility has actively blocked my access',        desc: 'Denied care, retaliation, or the facility is the problem', icon: '🚫' },
+      { value: 'distrust',     label: "I don't trust my local VA but haven't filed anything", desc: 'Bad experiences but no formal action taken', icon: '⚠️' },
+    ],
+  },
+  {
     id: 'disability_rating', question: "What is your current disability rating?",
     sub: "If you don't have one yet, pick accordingly — this helps find what you may be leaving on the table.", type: 'single',
     options: [
@@ -912,6 +930,27 @@ const GUIDED_STEPS = [
     ],
   },
   {
+    // Independent-audit finding (2026-09-07, round 5, medium): this
+    // question exists in direct mode (STEPS) but had no guided-mode
+    // equivalent -- a guided-mode veteran who flagged "I don't have a
+    // stable place to stay" (or a crisis) was never asked their actual
+    // housing situation. Gated on relevance to guided_situation rather
+    // than shown unconditionally (unlike direct mode), matching guided
+    // mode's own adaptive-flow character while closing the actual gap:
+    // asked whenever housing or crisis was flagged as a need.
+    id: 'housing_status', question: "What's your housing situation right now?",
+    sub: "Pick the one that best describes where you are tonight.", type: 'single',
+    skip: (i) => !(i.guided_situation || []).some((v) => ['housing', 'crisis'].includes(v)),
+    options: [
+      { value: 'unsheltered',    label: 'Outside / no shelter',   desc: 'Sleeping outside, no place to go tonight', icon: '⛺' },
+      { value: 'car',            label: 'In my car',               desc: 'Sleeping in a vehicle',                   icon: '🚗' },
+      { value: 'shelter',        label: 'In a shelter',            desc: 'Emergency shelter or transitional housing',icon: '🏢' },
+      { value: 'couch',          label: 'Couch surfing',           desc: "Staying with someone — not my place",     icon: '🛋️' },
+      { value: 'unstable_housed',label: 'Housed but at risk',      desc: 'Facing eviction or losing housing soon',  icon: '⚠️' },
+      { value: 'stable',         label: 'Stable housing',          desc: 'Housing is secure — need other help',     icon: '✅' },
+    ],
+  },
+  {
     id: 'va_history',
     question: "Have you used VA services before?",
     sub: "This changes the advice significantly — your starting point matters.",
@@ -936,6 +975,40 @@ const GUIDED_STEPS = [
       { value: 'complaints',   label: 'I have filed or want to file complaints',            desc: 'Specific incidents — care denied, mistreated, ignored', icon: '📋' },
       { value: 'obstruction',  label: 'The facility has actively blocked my access',        desc: 'Denied care, retaliation, or the facility is the problem', icon: '🚫' },
       { value: 'distrust',     label: "I don't trust my local VA but haven't filed anything", desc: 'Bad experiences but no formal action taken', icon: '⚠️' },
+    ],
+  },
+  {
+    // Independent-audit finding (2026-09-07, round 5, medium): this
+    // question exists in direct mode (STEPS) but had no guided-mode
+    // equivalent -- gated on relevance (money/service/transition needs,
+    // where prior program enrollment materially changes routing) rather
+    // than shown unconditionally, matching guided mode's adaptive character.
+    id: 'current_programs', question: "Which VA programs are you currently enrolled in?",
+    sub: "Select all that apply — even if you're not actively using them right now.", type: 'multi',
+    skip: (i) => !(i.guided_situation || []).some((v) => ['money', 'service', 'transition'].includes(v)),
+    options: [
+      { value: 'va_healthcare',   label: 'VA Healthcare',                   desc: 'Enrolled with a VA doctor or clinic', icon: '🏥' },
+      { value: 'disability_comp', label: 'Disability Compensation',         desc: 'Monthly payment for service-connected conditions', icon: '💵' },
+      { value: 'gi_bill',         label: 'GI Bill (Education)',             desc: 'Chapter 33 Post-9/11 or Chapter 30 Montgomery', icon: '🎓' },
+      { value: 'vre',             label: 'VR&E / Chapter 31',               desc: 'Vocational Rehabilitation & Employment', icon: '💼' },
+      { value: 'va_home_loan',    label: 'VA Home Loan',                    desc: 'Used or currently using the VA loan benefit', icon: '🏠' },
+      { value: 'va_pension',      label: 'VA Pension',                      desc: 'Need-based pension for wartime veterans', icon: '💵' },
+      { value: 'pcafc',           label: 'Caregiver Program (PCAFC)',       desc: 'Program of Comprehensive Assistance for Family Caregivers', icon: '🤝' },
+      { value: 'none',            label: 'None of the above',               desc: 'Not currently enrolled in any VA programs', icon: '—' },
+    ],
+  },
+  {
+    // Independent-audit finding (2026-09-07, round 5, medium): same gap
+    // as current_programs above -- gated on the "money" need specifically.
+    id: 'income', question: "Roughly what's your monthly income?",
+    sub: "All sources — pay, disability, benefits, etc. Approximate is fine.", type: 'single',
+    skip: (i) => !(i.guided_situation || []).includes('money'),
+    options: [
+      { value: 'none',       label: 'No income right now',       icon: '—'  },
+      { value: 'under_500',  label: 'Under $500 / month',        icon: '💵' },
+      { value: '500_1000',   label: '$500 – $1,000 / month',     icon: '💵' },
+      { value: '1000_2000',  label: '$1,000 – $2,000 / month',   icon: '💵' },
+      { value: 'over_2000',  label: 'Over $2,000 / month',       icon: '💵' },
     ],
   },
   {
