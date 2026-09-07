@@ -906,6 +906,7 @@ const GUIDED_STEPS = [
       { value: 'money',      label: "Money is really tight",                             desc: "I'm not getting what I'm owed or I need more income", icon: '💵' },
       { value: 'service',    label: "Something from my service is catching up with me",  desc: "Injuries, exposures, conditions — stuff I was never compensated for", icon: '🎖️' },
       { value: 'transition', label: "I just got out and don't know what I'm entitled to", desc: "New veteran still figuring out what benefits exist", icon: '🔄' },
+      { value: 'business',   label: "I want to start or grow a business",                 desc: "Veteran-owned business certification, federal contracts, GSA surplus", icon: '🏢' },
       { value: 'legal',      label: "I'm dealing with a legal problem",                  desc: "Discharge issues, court, eviction notice, supervision", icon: '⚖️' },
       { value: 'crisis',     label: "I need help right now — tonight",                   desc: "Immediate danger, crisis, can't wait", icon: '🚨' },
     ],
@@ -981,6 +982,7 @@ function applyGuidedSituation(values) {
     money:      { need: ['claims', 'benefits'] },
     service:    { need: ['claims', 'toxic_exposure'] },
     transition: { need: ['benefits', 'employment'] },
+    business:   { need: ['business'] },
     legal:      { need: ['legal'] },
     crisis:     { need: ['crisis'], urgency: 'tonight' },
   };
