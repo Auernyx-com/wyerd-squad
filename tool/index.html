@@ -1438,7 +1438,20 @@ function restoreSession(session) {
   // so they default to STEPS (direct mode), matching this function's own
   // prior (buggy) fallback behavior for anyone already mid-session.
   activeSteps  = session.mode === 'guided' ? GUIDED_STEPS : STEPS;
-  currentStep  = session.currentStep  || 0;
+  // Independent-audit finding (2026-09-08, round 13, medium): a saved
+  // currentStep past the end of whichever steps array restoreSession just
+  // picked (a legacy session with no recorded mode restored against the
+  // wrong array, a hand-edited/corrupted imported profile, or simply a
+  // future deploy that shortens STEPS/GUIDED_STEPS) crashed renderStep()
+  // outright -- steps[currentStep] is undefined, and the very next line
+  // reads .question off it. Confirmed directly with a probe: restoreSession
+  // ({ mode: 'guided', currentStep: 999, intake: {...} }) threw
+  // "Cannot read properties of undefined (reading 'question')", leaving
+  // the veteran on a blank, broken screen with no way forward. Clamped to
+  // a valid index instead -- same "never crash on corrupted/legacy state"
+  // standard this function already applies to a missing `mode`.
+  const savedStep = Number.isInteger(session.currentStep) ? session.currentStep : 0;
+  currentStep  = Math.min(Math.max(savedStep, 0), Math.max(activeSteps.length - 1, 0));
   intake       = session.intake       || {};
   savedResults = session.savedResults || null;
   chatHistory  = session.chatHistory  || [];
